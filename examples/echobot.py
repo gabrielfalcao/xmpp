@@ -8,7 +8,6 @@ import coloredlogs
 from xmpp import XMLStream
 from xmpp import XMPPConnection
 from xmpp import JID
-from xmpp import sasl
 from xmpp.auth import SASLAuthenticationHandler
 
 DEBUG = True
@@ -17,7 +16,6 @@ DOMAIN = 'falcao.it'
 jid = JID('presence1@falcao.it/xmpp-test')
 password = 'presence1'
 SASL_MECHANISM = 'SCRAM-SHA-1'
-SASL_HANDLER = sasl.client_authenticator_factory(SASL_MECHANISM)
 
 
 def application():

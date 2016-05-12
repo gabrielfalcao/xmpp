@@ -1,9 +1,10 @@
 #
+# (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License Version
-# 2.1 as published by the Free Software Foundation.
+# 3 as published by the Free Software Foundation.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -14,6 +15,7 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
+
 """Base classes for PyXMPP SASL implementation.
 
 Normative reference:
