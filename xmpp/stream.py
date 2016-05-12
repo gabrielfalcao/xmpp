@@ -359,6 +359,16 @@ class XMLStream(object):
     def send(self, node):
         self._connection.send(node.to_xml())
 
+    def close(self, disconnect=True):
+        self._connection.send(b'</stream:stream>')
+        self._state = STREAM_STATES.IDLE
+
+        if disconnect:
+            self._connection.disconnect()
+
+        self.recycle()
+        self._connection = None
+
     def open_client(self, domain):
         initial = Stream.create_client(
             to=domain,
