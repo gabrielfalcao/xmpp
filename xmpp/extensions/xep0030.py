@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from speakers import Speaker as Events
-from xmpp.models import Node, IQ
-from xmpp.xeps import Extension
+from xmpp.models import Node, IQ, JID
+from xmpp.extensions import Extension
 
 
 class QueryInfo(Node):
@@ -31,11 +31,14 @@ class Item(Node):
     __single__ = True
     __children_of__ = QueryItems
 
-    def __repr__(self):
+    def to_string(self):
         if 'jid' in self.attr:
-            return 'component:{jid}'.format(**self.attr)
+            return 'component:jid:{jid}'.format(**self.attr)
 
-        return 'item:{0}'.format(self.to_xml())
+        return 'item:{0}'.format(list(self.attr.items()))
+
+    def __repr__(self):
+        return self.to_string()
 
 
 class Identity(Node):
@@ -46,13 +49,15 @@ class Identity(Node):
     ]
     __children_of__ = QueryInfo
 
-    def __repr__(self):
+    def to_string(self):
         return ':'.join(filter(bool, [
             self.attr.get('category'),
             self.attr.get('type'),
             self.attr.get('name'),
         ]))
-        return
+
+    def __repr__(self):
+        return self.to_string()
 
 
 class Feature(Node):
@@ -65,7 +70,7 @@ class Feature(Node):
 
     def __repr__(self):
         return ":".join([
-            "item",
+            "feature",
             self.attr.get('var', self.value),
         ])
 
@@ -103,24 +108,16 @@ class ServiceDiscovery(Extension):
         if event:
             event.shout(node)
 
-    def query_items(self, to=None, node=None):
-        to = to or self.stream.bound_jid.domain
-        iq = IQ.create(type='get', to=to)
-        params = {}
-        if node:
-            params['node'] = node
-
+    def query_items(self, **params):
+        to_jid = JID(params.get('to', self.stream.bound_jid.domain)).bare
+        iq = IQ.create(type='get', to=to_jid)
         query = QueryItems.create(**params)
         iq.append(query)
         self.stream.send(iq)
 
-    def query_info(self, to=None, node=None):
-        to = to or self.stream.bound_jid.domain
-        iq = IQ.create(type='get', to=to)
-        params = {}
-        if node:
-            params['node'] = node
-
+    def query_info(self, **params):
+        to_jid = JID(params.get('to', self.stream.bound_jid.domain)).bare
+        iq = IQ.create(type='get', to=to_jid)
         query = QueryInfo.create(**params)
         iq.append(query)
         self.stream.send(iq)

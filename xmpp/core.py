@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # <xmpp - stateless and concurrency-agnostic XMPP library for python>
 #
 # (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
@@ -47,11 +49,7 @@ def fixup_unknown_element(element, uri_map=None):
         if ns not in uri_map:
             uri_map[ns] = attr
 
-        if ns:
-            new = ':'.join(['xmlns', attr])
-        else:
-            new = attr
-        element.set(new, value)
+        element.set(attr, value)
 
     element.set('xmlns', xmlns)
 
@@ -88,21 +86,18 @@ def fixup_element(original_elem, uri_map=None):
 
 
 def node_to_string(node):
-    if node._element is not None:
-        element = node._element.copy()
-    else:
-        element = ET.Element(node.tag, node.attr)
-
+    element = node._element.copy()
     fixup_element(element)
-
     output = ET.tostring(element, 'utf-8')
-
     return output
 
 
 def generate_id():
     return bytes(uuid.uuid4())
 
+
+def is_element(element):
+    return ET.iselement(element)
 
 __all__ = [
     'split_tag_and_namespace',

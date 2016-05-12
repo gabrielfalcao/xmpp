@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # <xmpp - stateless and concurrency-agnostic XMPP library for python>
 #
 # (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
@@ -14,4 +16,27 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from xmpp import sasl
+
+from xmpp.models import JID
+
+
+def test_jid_from_string():
+    ('JID() should accept a string')
+
+    # Given a JID from string
+    item = JID('user@domain.com/resource')
+
+    # It can be represented as a full jid
+    item.full.should.equal('user@domain.com/resource')
+
+    # It can be represented as a bare jid
+    item.bare.should.equal('user@domain.com')
+
+    # It has the nick
+    item.nick.should.equal('user')
+
+    # It has the domain
+    item.domain.should.equal('domain.com')
+
+    # It has the resource
+    item.resource.should.equal('resource')

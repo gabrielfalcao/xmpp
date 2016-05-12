@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # <xmpp - stateless and concurrency-agnostic XMPP library for python>
 #
 # (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>

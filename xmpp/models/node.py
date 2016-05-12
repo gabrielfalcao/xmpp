@@ -106,16 +106,27 @@ class Node(object):
         return name, OrderedDict([(name, ns)])
 
     @classmethod
-    def create(cls, **kw):
-        etag = cls.__etag__
-        if not etag:
-            etag = cls.__tag__
+    def create(cls, _stringcontent=None, **kw):
+        params = OrderedDict()
+        if not cls.__etag__:
+            tag = cls.__tag__
+            for suffix, ns in cls.__namespaces__:
+                attr = ":".join(filter(bool, ['xmlns', suffix]))
+                params[attr] = ns
+        else:
+            tag = cls.__etag__
 
-        element = ET.Element(
-            etag,
-            **kw
-        )
-        return Node.from_element(element)
+        params.update(kw)
+
+        element = ET.Element(tag, **params)
+        if isinstance(_stringcontent, basestring):
+            element.text = _stringcontent
+
+        return Node.from_element(element, allow_fixedup=True)
+
+    def set_attribute(self, attr, value):
+        self._element.attrib[attr] = value
+        self._attributes[attr] = value
 
     @property
     def tag(self):

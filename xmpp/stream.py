@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # <xmpp - stateless and concurrency-agnostic XMPP library for python>
 #
 # (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
@@ -23,7 +25,7 @@ from xmpp.core import ET
 
 from speakers import Speaker as Events
 from xmpp.core import generate_id
-from xmpp.xeps import get_known_extensions
+from xmpp.extensions import get_known_extensions
 from xmpp.models import (
     Node,
     PresencePriority,
@@ -149,6 +151,36 @@ class NodeHandler(object):
         return node
 
 
+def create_stream_events():
+    return Events('stream', [
+        'feed',                 # the XMLStream has just been fed with xml
+        'open',                 # the XMLStream is open
+        'closed',               # the XMLStream has been closed
+        'error',                # received a <stream:error></stream:error> from the server
+        'unhandled_xml',        # the XMLStream failed to feed the incremental XML parser with the given value
+        'node',                 # a new xmpp.Node was just parsed by the stream and is available to use
+        'iq',                   # a new xmpp.IQ was node was received
+        'message',              # a new xmpp.Message node was received
+        'presence',             # a new xmpp.Presence node was received
+        'start_stream',         # a new stream is being negotiated
+        'start_tls',            # server sent <starttls />
+        'tls_proceed',          # the peer allowed the TCP connection to upgrade to TLS
+        'sasl_challenge',       # the peer sent a SASL challenge
+        'sasl_success',         # the peer sent a SASL success
+        'sasl_failure',         # the peer sent a SASL failure
+        'sasl_response',        # the peer sent a SASL response
+        'sasl_support',         # the peer says it supports SASL
+        'bind_support',         # the peer says it supports binding resource
+        'iq_result',            # the peer returned a <iq type="result"></iq>
+        'iq_set',               # the peer returned a <iq type="set"></iq>
+        'iq_get',               # the peer returned a <iq type="get"></iq>
+        'iq_error',             # the peer returned a <iq type="error"></iq>
+        'user_registration',    # the peer supports user registration
+        'bound_jid',            # the peer returned a <jid>username@domain/resource</jid> that should be used in the from= of stanzas
+        'success_handshake',      # the server authorized the component to reopen the stream and start sending stanzas
+    ])
+
+
 class XMLStream(object):
     def __init__(self, connection, max_text_length=1024 * 64, debug=False):
         self._state = STREAM_STATES.IDLE
@@ -158,33 +190,7 @@ class XMLStream(object):
         self._connection.on.ready_to_read(self.ready_to_read)
         self.max_text_length = max_text_length
         self.extension = {}
-        self.on = Events('stream', [
-            'feed',                 # the XMLStream has just been fed with xml
-            'open',                 # the XMLStream is open
-            'closed',               # the XMLStream has been closed
-            'error',                # received a <stream:error></stream:error> from the server
-            'unhandled_xml',        # the XMLStream failed to feed the incremental XML parser with the given value
-            'node',                 # a new xmpp.Node was just parsed by the stream and is available to use
-            'iq',                   # a new xmpp.IQ was node was received
-            'message',              # a new xmpp.Message node was received
-            'presence',             # a new xmpp.Presence node was received
-            'start_stream',         # a new stream is being negotiated
-            'start_tls',            # server sent <starttls />
-            'tls_proceed',          # the peer allowed the TCP connection to upgrade to TLS
-            'sasl_challenge',       # the peer sent a SASL challenge
-            'sasl_success',         # the peer sent a SASL success
-            'sasl_failure',         # the peer sent a SASL failure
-            'sasl_response',        # the peer sent a SASL response
-            'sasl_support',         # the peer says it supports SASL
-            'bind_support',         # the peer says it supports binding resource
-            'iq_result',            # the peer returned a <iq type="result"></iq>
-            'iq_set',               # the peer returned a <iq type="set"></iq>
-            'iq_get',               # the peer returned a <iq type="get"></iq>
-            'iq_error',             # the peer returned a <iq type="error"></iq>
-            'user_registration',    # the peer supports user registration
-            'bound_jid',            # the peer returned a <jid>username@domain/resource</jid> that should be used in the from= of stanzas
-            'success_handshake',      # the server authorized the component to reopen the stream and start sending stanzas
-        ])
+        self.on = create_stream_events()
         self.on.node(self.route_nodes)
         # if debug:
         #     self.on.open(lambda event, data: logging.debug("STREAM OPEN: %s", data))
@@ -472,8 +478,7 @@ class XMLStream(object):
             presence.append(Delay.create(**delay_params))
 
         if priority:
-            node = PresencePriority.create()
-            node.add_text(bytes(priority))
+            node = PresencePriority.create(bytes(priority))
             presence.append(node)
 
         self.send(presence)
@@ -487,12 +492,11 @@ class XMLStream(object):
         return self.__success_handshake is not None
 
     def send_secret_handshake(self, secret):
-        handshake = SecretHandshake.create()
         secret = hashlib.sha1("".join([self.id, secret])).hexdigest()
-        handshake.add_text(secret)
+        handshake = SecretHandshake.create(secret)
         self.send(handshake)
 
-    def add_contact(self, contact_jid, from_jid=None):
+    def add_contact(self, contact_jid, from_jid=None, groups=None):
         from_jid = JID(from_jid or self.bound_jid)
         contact_jid = JID(contact_jid)
 
@@ -501,10 +505,29 @@ class XMLStream(object):
             jid=contact_jid.full,
             name=contact_jid.nick.title()
         )
-        new_contact.append(item)
+        groups = groups or []
+        for group_name in groups:
+            group = RosterGroup.create(group_name)
+            item.append(group)
 
+        new_contact.append(item)
         params = {
             'type': 'set',
-            'from': from_jid.bare
+            'from': from_jid.full,
+            'to': contact_jid.full
         }
         self.send(IQ.with_child_and_attributes(new_contact, **params))
+
+
+class FakeStream(object):
+    """Fake XMLStream that is used for testing extensions that send nodes
+    to the server.
+    """
+    def __init__(self, jid):
+        self.output = []
+        self.on = create_stream_events()
+        self.bound_jid = JID(jid)
+        self.jid = jid
+
+    def send(self, node):
+        self.output.append(node)

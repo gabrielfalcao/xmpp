@@ -23,43 +23,46 @@ from xmpp.models.node import Node
 
 
 class JID(object):
-    regex = re.compile(r'^(?P<full>(?P<bare>(?P<nick>[^@]+)@?(?P<domain>[^/]+))(/(?P<resource>\S+))?)$')
+    regex = re.compile(r'^(?P<full>(?P<bare>(?P<nick>[^@]+)?@?(?P<domain>[^/]+)?)(/(?P<resource>\S+)?)?)$')
 
     def __init__(self, data, generate_resource=False):
+        self.data = data
         if isinstance(data, basestring):
             found = self.regex.search(data)
-            if not found:
-                raise TypeError('invalid JID: {0}'.format(data))
-
-            self.parts = found.groupdict()
+            if found:
+                self.parts = found.groupdict()
+            else:
+                self.parts = {}
 
         elif isinstance(data, dict):
             self.parts = data
         elif isinstance(data, JID):
             self.parts = data.parts
+        elif not data:
+            self.parts = {}
 
         if generate_resource and not self.parts.get('resource'):
             self.parts['resource'] = generate_resource()
 
     @property
     def full(self):
-        return self.parts.get('full')
+        return self.parts.get('full', self.data)
 
     @property
     def bare(self):
-        return self.parts.get('bare')
+        return self.parts.get('bare', self.data)
 
     @property
     def nick(self):
-        return self.parts.get('nick')
+        return self.parts.get('nick', self.data)
 
     @property
     def domain(self):
-        return self.parts.get('domain')
+        return self.parts.get('domain', self.data)
 
     @property
     def resource(self):
-        return self.parts.get('resource')
+        return self.parts.get('resource', self.data)
 
     @property
     def muc(self):
@@ -74,7 +77,7 @@ class JID(object):
         return '{nick}@{domain}/{resource}'.format(**self.parts)
 
     def __str__(self):
-        return self.text
+        return self.full
 
     def __repr__(self):
         return 'JID({0})'.format(self.parts)
@@ -91,22 +94,6 @@ class Stream(Node):
 
     def initialize(self):
         self._features = {}
-
-    @classmethod
-    def create(cls, **kw):
-        params = OrderedDict()
-        if not cls.__etag__:
-            tag = cls.__tag__
-            for suffix, ns in cls.__namespaces__:
-                attr = ":".join(filter(bool, ['xmlns', suffix]))
-                params[attr] = ns
-        else:
-            tag = cls.__etag__
-
-        params.update(kw)
-
-        element = ET.Element(tag, **params)
-        return Node.from_element(element, allow_fixedup=True)
 
     def to_xml(self, close=False):
         xml = super(Stream, self).to_xml()
