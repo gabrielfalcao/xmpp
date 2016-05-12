@@ -16,7 +16,7 @@ export PATH
 export PYTHONPATH
 export SHELL
 
-tests: lint unit functional
+tests: unit
 
 # http://misc.flogisoft.com/bash/tip_colors_and_formatting
 
@@ -59,6 +59,7 @@ ensure-dependencies:
 
 release: tests docs
 	@./.release
+	@python setup.py sdist register upload
 
 list:
 	@$(executable) list
