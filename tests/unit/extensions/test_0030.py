@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from mock import ANY
-from xmpp.stream import FakeXMLStream
 from xmpp.extensions.xep0030 import ServiceDiscovery
 from xmpp.extensions.xep0030 import Identity
 from xmpp.extensions.xep0030 import Item
@@ -25,6 +24,7 @@ from xmpp.extensions.xep0030 import Feature
 from xmpp.extensions.xep0030 import QueryInfo
 from xmpp.extensions.xep0030 import QueryItems
 
+from tests.unit.util import FakeXMLStream
 from tests.unit.util import EventHandlerMock
 
 

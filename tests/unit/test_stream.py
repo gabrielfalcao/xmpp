@@ -19,7 +19,9 @@
 from mock import Mock, ANY
 
 from xmpp import XMLStream
-from util import EventHandlerMock, event_test
+from xmpp.models.core import ResourceBind
+from xmpp.models.core import MissingJID
+from util import EventHandlerMock, event_test, FakeConnection
 
 
 @event_test
@@ -87,3 +89,133 @@ def test_stream_reader_set_invalid_State(context):
 
     # Then it should have raised
     when_called.should.have.raised(TypeError, 'invalid state was given: wat')
+
+
+def test_send_presence():
+    ('XMLStream.send_presence when no `from` '
+     'defined fallbacks to bound_jid')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+    stream.handle_bound_jid(
+        ResourceBind.create('juliet@capulet')
+    )
+
+    # When I call send_presence
+    stream.send_presence(
+        to='romeo@monteque',
+    )
+
+    # Then it should have sent the correct XML
+    connection.output.should.equal([
+        '<presence from="juliet@capulet" to="romeo@monteque"><priority>10</priority></presence>'
+    ])
+
+
+def test_send_presence_jid():
+    ('XMLStream.send_presence when no `from` '
+     'defined fallbacks')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I call send_presence
+    stream.send_presence(
+        **{
+            'to': 'juliet@capulet',
+            'from': 'romeu@monteque',
+        }
+    )
+
+    # Then it should have sent the correct XML
+    connection.output.should.equal([
+        '<presence from="romeu@monteque" to="juliet@capulet"><priority>10</priority></presence>',
+    ])
+
+
+def test_send_presence_missing_jid():
+    ('XMLStream.send_presence() complains '
+     'if there is no bound jid and no provided `from` jid')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I call send_presence
+    stream.send_presence.when.called_with(
+        **{
+            'to': 'juliet@capulet',
+        }
+    ).should.have.raised(
+        MissingJID, 'Presence cannot be sent when missing the "from" jid'
+    )
+
+
+def test_send_presence_delay():
+    ('XMLStream.send_presence should be able to send delay')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I call send_presence
+    stream.send_presence(
+        **{
+            'to': 'juliet@capulet',
+            'from': 'romeu@monteque',
+            'delay': 'foobar'
+        }
+    )
+
+    # Then it should have sent the correct XML
+    connection.output.should.equal([
+        '<presence from="romeu@monteque" to="juliet@capulet"><delay from="romeu@monteque" stamp="foobar" xmlns="urn:xmpp:delay" /><priority>10</priority></presence>'
+    ])
+
+
+def test_send_message():
+    ('XMLStream.send_message() should send a message with body')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I call send_presence
+    stream.send_message(
+        'Hello',
+        **{
+            'to': 'juliet@capulet',
+            'from': 'romeu@monteque',
+        }
+    )
+
+    # Then it should have sent the correct XML
+    connection.output.should.equal([
+        '<message from="romeu@monteque" to="juliet@capulet" type="chat"><body>Hello</body></message>'
+    ])
+
+
+def test_is_authenticated_component():
+    ('XMLStream.is_authenticated_component() should return '
+     'true if there is success node in the stream')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    stream.handle_success_handshake(True)
+    stream.is_authenticated_component().should.be.true

@@ -801,3 +801,10 @@ class RosterGroup(Node):
         ('', 'jabber:iq:roster')
     ]
     __children_of__ = RosterItem
+
+
+class MissingJID(Exception):
+    """raised when trying to send a
+    stanza but it is missing either the
+    "to" or "from" fields
+    """

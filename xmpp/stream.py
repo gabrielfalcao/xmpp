@@ -52,6 +52,7 @@ from xmpp.models import (
     RosterQuery,
     RosterItem,
     RosterGroup,
+    MissingJID,
 )
 
 logger = logging.getLogger('xmpp.stream')
@@ -464,23 +465,23 @@ class XMLStream(object):
         from_jid = params.get('from')
         if from_jid:
             from_jid = JID(from_jid)
+        elif self.bound_jid:
+            from_jid = self.bound_jid
+        else:
+            msg = 'Presence cannot be sent when missing the "from" jid'
+            raise MissingJID(msg)
 
-        if self.bound_jid and not from_jid:
-            params['from'] = self.bound_jid.full
-
+        params['from'] = from_jid.full
         if to:
             params['to'] = JID(to).full
 
-        from_jid = params.get('from')
         presence = Presence.create(**params)
 
         if delay:
             delay_params = {
-                'stamp': delay.isoformat(),
+                'stamp': delay,
+                'from': from_jid.full
             }
-            if from_jid:
-                delay_params['from_jid'] = from_jid
-
             presence.append(PresenceDelay.create(**delay_params))
 
         if priority:
@@ -526,17 +527,3 @@ class XMLStream(object):
         }
         self.send_presence(**{'from': from_jid.bare, 'to': contact_jid.full, 'type': 'subscribe'})
         self.send(IQ.with_child_and_attributes(new_contact, **params))
-
-
-class FakeXMLStream(object):
-    """Fake XMLStream that is used for testing extensions that send nodes
-    to the server.
-    """
-    def __init__(self, jid):
-        self.output = []
-        self.on = create_stream_events()
-        self.bound_jid = JID(jid)
-        self.jid = jid
-
-    def send(self, node):
-        self.output.append(node)

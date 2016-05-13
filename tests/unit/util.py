@@ -21,6 +21,9 @@ import re
 from sure import scenario
 from speakers import Speaker as Events
 from mock import MagicMock
+from xmpp.models.core import JID
+from xmpp.stream import create_stream_events
+from xmpp.networking.core import create_connection_events
 
 
 def XML(string):
@@ -47,3 +50,26 @@ def clear_events(context):
     Events.release_all()
 
 event_test = scenario(clear_events, clear_events)
+
+
+class FakeConnection(object):
+    def __init__(self):
+        self.output = []
+        self.on = create_connection_events()
+
+    def send(self, data):
+        self.output.append(data)
+
+
+class FakeXMLStream(object):
+    """Fake XMLStream that is used for testing extensions that send nodes
+    to the server.
+    """
+    def __init__(self, jid):
+        self.output = []
+        self.on = create_stream_events()
+        self.bound_jid = JID(jid)
+        self.jid = jid
+
+    def send(self, node):
+        self.output.append(node)

@@ -35,6 +35,27 @@ stderr = couleur.Shell(sys.stderr, linebreak=True)
 DEFAULT_CIPHERS = "HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL"
 
 
+def create_connection_events():
+    return Events('connection', [
+        'tcp_established',    # the TCP connection was established
+        'tcp_restablished',   # the TCP connection was lost and restablished
+        'tcp_downgraded',     # the TLS connection was downgraded to TCP
+        'tcp_disconnect',     # the TCP connection was lost
+        'tcp_failed',         # the TCP connection failed to be established
+
+        'tls_established',    # the TLS connection was established
+        'tls_invalid_chain',  # the TLS handshake failed for invalid chain
+        'tls_invalid_cert',   # the TLS handshake failed for invalid server cert
+        'tls_failed',         # failed to establish a TLS connection
+        'tls_start',          # started SSL negotiation
+
+        'write',              # the TCP/TLS connection is ready to send data
+        'read',               # the TCP/TLS connection is ready to receive data
+        'ready_to_write',     # the TCP/TLS connection is ready to send data
+        'ready_to_read',      # the TCP/TLS connection is ready to receive data
+    ])
+
+
 class XMPPConnection(object):
     """Event-based TCP/TLS connection.
 
@@ -58,25 +79,7 @@ class XMPPConnection(object):
         self.write_queue = queue_class(hwm_out)
         self.recv_chunk_size = int(recv_chunk_size)
         self.__alive = False
-        self.on = Events('connection', [
-            'tcp_established',    # the TCP connection was established
-            'tcp_restablished',   # the TCP connection was lost and restablished
-            'tcp_downgraded',     # the TLS connection was downgraded to TCP
-            'tcp_disconnect',     # the TCP connection was lost
-            'tcp_failed',         # the TCP connection failed to be established
-
-            'tls_established',    # the TLS connection was established
-            'tls_invalid_chain',  # the TLS handshake failed for invalid chain
-            'tls_invalid_cert',   # the TLS handshake failed for invalid server cert
-            'tls_failed',         # failed to establish a TLS connection
-            'tls_start',          # started SSL negotiation
-
-            'write',              # the TCP/TLS connection is ready to send data
-            'read',               # the TCP/TLS connection is ready to receive data
-            'ready_to_write',     # the TCP/TLS connection is ready to send data
-            'ready_to_read',      # the TCP/TLS connection is ready to receive data
-        ])
-
+        self.on = create_connection_events()
         if debug:
             self.on.tcp_established(lambda event, data: stderr.bold_green("TCP ESTABLISHED: {0}".format(data)))
             self.on.tcp_restablished(lambda event, data: stderr.bold_blue("TCP RESTABLISHED: {0}".format(data)))
