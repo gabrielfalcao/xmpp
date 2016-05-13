@@ -57,10 +57,13 @@ fake-devices:
 ensure-dependencies:
 	@pip install -r development.txt
 
-release: tests docs
+pre-release: tests docs
 	@./.release
 	@python setup.py register -r pypitest
 	@python setup.py sdist upload -r pypitest
+
+
+release: tests docs
 	@python setup.py register
 	@python setup.py sdist upload
 
