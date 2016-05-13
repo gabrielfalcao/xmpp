@@ -1,0 +1,14 @@
+language: python
+sudo: false
+python:
+  - "2.7"
+
+env:
+  - TEST_TYPE=unit
+  - TEST_TYPE=functional
+
+install:
+  - pip install -r development.txt
+
+script:
+  - make $TEST_TYPE

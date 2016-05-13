@@ -11,7 +11,11 @@ XMPP
 Simplistic and stateless XMPP implementation for python. A building
 block for non-blocking XMPP clients, components, gateways and servers.
 
-
+.. image:: https://readthedocs.org/projects/xmpp/badge/?version=latest
+   :target: http://xmpp.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+.. image:: https://travis-ci.org/gabrielfalcao/xmpp.svg?branch=master
+   :target: https://travis-ci.org/gabrielfalcao/xmpp
 
 Acknowledgements
 ================
