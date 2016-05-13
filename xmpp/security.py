@@ -18,6 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime
+import Crypto.PublicKey.RSA as RSA
 from pyasn1.codec.der import decoder
 from pyasn1.type.univ import OctetString
 from pyasn1.type.univ import ObjectIdentifier
@@ -39,6 +40,11 @@ SRV_NAME = ObjectIdentifier('1.3.6.1.5.5.7.8.7')
 
 class CertificateError(Exception):
     pass
+
+
+def pem_to_der(pem):
+    key = RSA.importKey(pem.strip())
+    return key.publickey().exportKey("DER")
 
 
 def decode_str(data):
