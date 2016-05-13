@@ -13,7 +13,6 @@ Contents:
 
    connection
    stream
-   events
    api
    extensions
 
