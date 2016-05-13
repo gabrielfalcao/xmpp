@@ -35,7 +35,7 @@ You can find some in the examples folder:
 
 * `Echo Bot <https://github.com/gabrielfalcao/xmpp/blob/master/examples/echobot.py>`_: Auto Replies to anyone who messages it
 * `Service Discovery <https://github.com/gabrielfalcao/xmpp/blob/master/examples/service_discovery.py>`_: How to use the Disco (xep 0030)
-* `Client that automatically sends presence and befriends anyone who sends it presence <https://github.com/gabrielfalcao/xmpp/blob/master/examples/presence-auto-subscriber.py>`_:
+* `Presence Bot <https://github.com/gabrielfalcao/xmpp/blob/master/examples/presence-auto-subscriber.py>`_: Client that automatically sends presence and befriends anyone who sends it presence
 
 
 Component Examples
@@ -43,4 +43,4 @@ Component Examples
 
 You can find some in the examples folder:
 
-* `Component that automatically sends presence and befriends anyone who sends it presence <https://github.com/gabrielfalcao/xmpp/blob/master/examples/component-presence-proxy.py>`_:
+* `Presence Proxy notifier <https://github.com/gabrielfalcao/xmpp/blob/master/examples/component-presence-proxy.py>`_: Component that befriends a specific JID and sends present to it, in behalf of many jids
