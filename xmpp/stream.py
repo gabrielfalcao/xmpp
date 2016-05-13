@@ -496,7 +496,8 @@ class XMLStream(object):
         handshake = SecretHandshake.create(secret)
         self.send(handshake)
 
-    def add_contact(self, contact_jid, groups=None):
+    def add_contact(self, contact_jid, from_jid=None, groups=None):
+        from_jid = JID(from_jid or self.bound_jid)
         contact_jid = JID(contact_jid)
 
         new_contact = RosterQuery.create()
@@ -512,7 +513,8 @@ class XMLStream(object):
         new_contact.append(item)
         params = {
             'type': 'set',
-            'to': contact_jid.full
+            'from': from_jid.full,
+            'to': contact_jid.domain
         }
         self.send(IQ.with_child_and_attributes(new_contact, **params))
 
