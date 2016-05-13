@@ -461,7 +461,11 @@ class XMLStream(object):
         self.send(iq)
 
     def send_presence(self, to=None, delay=None, priority=10, **params):
-        if self.bound_jid and 'from' not in params:
+        from_jid = params.get('from')
+        if from_jid:
+            from_jid = JID(from_jid)
+
+        if self.bound_jid and not from_jid:
             params['from'] = self.bound_jid.full
 
         if to:
@@ -520,7 +524,7 @@ class XMLStream(object):
             'from': from_jid.full,
             'to': contact_jid.bare,
         }
-        self.send_presence(**{'from': from_jid, 'to': contact_jid, 'type': 'subscribe'})
+        self.send_presence(**{'from': from_jid.bare, 'to': contact_jid.full, 'type': 'subscribe'})
         self.send(IQ.with_child_and_attributes(new_contact, **params))
 
 
