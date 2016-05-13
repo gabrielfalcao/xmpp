@@ -18,6 +18,7 @@
 
 from xmpp.models import Node
 from xmpp.models import IQ
+from xmpp.models import ResourceBind
 from xmpp.models import Stream
 
 
@@ -117,3 +118,55 @@ def test_create_component_stream():
     # Then it should be an open tag
     result.should.equal(
         '<stream:stream to="component.domain.im" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">')
+
+
+def test_equality():
+    ('Node objects should be comparable')
+
+    IQ.create(foo='bar').should.equal(IQ.create(foo='bar'))
+    (IQ.create(foo='bar') == 'not a node').should.be.false
+
+
+def test_close():
+    ('Node objects should be comparable')
+
+    node = IQ.create(foo='bar')
+    node.is_closed.should.be.false
+    node.close().should.be.false
+    node.is_closed.should.be.true
+
+
+def test_attr():
+    ('Node objects should be comparable')
+
+    node = ResourceBind.with_resource('wat')
+    dict(node.attr).should.equal({
+        'xmlns': 'urn:ietf:params:xml:ns:xmpp-bind'
+    })
+    node.set_attribute('foo', 'bar')
+    node.to_dict().should.equal({
+        'attributes': {
+            'foo': 'bar',
+            'xmlns': 'urn:ietf:params:xml:ns:xmpp-bind'
+        },
+        'nodes': [
+            {
+                'nodes': [],
+                'tag': 'resource',
+                'value': 'wat'
+            }
+        ],
+        'tag': 'bind'
+    })
+    str(node).should.look_like(
+        '<bind foo="bar" xmlns="urn:ietf:params:xml:ns:xmpp-bind"><resource>wat</resource></bind>')
+
+
+def test_append():
+    ('You should not be able to append to a node that is closed')
+    node = IQ.create(foo='bar')
+    node.close()
+    node.append.when.called_with(IQ.create()).should.have.raised(
+        TypeError,
+        'Refused to append a child to the closed node: <iq foo="bar" />',
+    )

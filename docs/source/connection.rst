@@ -21,15 +21,15 @@ Events
 +------------------------+--------------------------------------------------+
 | **tcp_failed**         | the TCP connection failed to be established      |
 +------------------------+--------------------------------------------------+
-| **ssl_established**    | the TLS connection was established               |
+| **tls_established**    | the TLS connection was established               |
 +------------------------+--------------------------------------------------+
-| **ssl_invalid_chain**  | the TLS handshake failed for invalid chain       |
+| **tls_invalid_chain**  | the TLS handshake failed for invalid chain       |
 +------------------------+--------------------------------------------------+
-| **ssl_invalid_cert**   | the TLS handshake failed for invalid server cert |
+| **tls_invalid_cert**   | the TLS handshake failed for invalid server cert |
 +------------------------+--------------------------------------------------+
-| **ssl_failed**         | failed to establish a TLS connection             |
+| **tls_failed**         | failed to establish a TLS connection             |
 +------------------------+--------------------------------------------------+
-| **ssl_start**          | started SSL negotiation                          |
+| **tls_start**          | started SSL negotiation                          |
 +------------------------+--------------------------------------------------+
 | **write**              | the TCP/TLS connection is ready to send data     |
 +------------------------+--------------------------------------------------+

@@ -28,7 +28,11 @@ SocketStatePair = namedtuple('SocketStatePair', ['read', 'write'])
 
 def create_tcp_socket(keep_alive_seconds=3, max_fails=5):
     result = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    set_keepalive(result, interval_sec=keep_alive_seconds, max_fails=max_fails)
+    set_keepalive(
+        result,
+        interval_sec=keep_alive_seconds,
+        max_fails=max_fails
+    )
     return result
 
 
@@ -43,7 +47,7 @@ def set_keepalive(*args, **kw):
         set_keepalive_linux(*args, **kw)
 
 
-def set_keepalive_linux(sock, after_idle_sec=1, interval_sec=3, max_fails=5):
+def set_keepalive_linux(sock, interval_sec=3, after_idle_sec=1, max_fails=5):
     """Set TCP keepalive on an open socket.
 
     It activates after 1 second (after_idle_sec) of idleness,
@@ -56,7 +60,7 @@ def set_keepalive_linux(sock, after_idle_sec=1, interval_sec=3, max_fails=5):
     sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, max_fails)
 
 
-def set_keepalive_osx(sock, after_idle_sec=1, interval_sec=3, max_fails=5):
+def set_keepalive_osx(sock, interval_sec=3, after_idle_sec=None, max_fails=None):
     """Set TCP keepalive on an open socket.
 
     sends a keepalive ping once every 3 seconds (interval_sec)

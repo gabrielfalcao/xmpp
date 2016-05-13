@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-import ssl
+# import ssl
 import random
 import socket
 import logging
@@ -24,7 +24,7 @@ import Queue
 import dns.resolver
 import couleur
 from speakers import Speaker as Events
-from xmpp import security
+# from xmpp import security
 from xmpp.networking.util import create_tcp_socket
 from xmpp.networking.util import address_is_ip
 from xmpp.networking.util import socket_ready
@@ -33,84 +33,6 @@ logger = logging.getLogger('xmpp.networking')
 stderr = couleur.Shell(sys.stderr, linebreak=True)
 
 DEFAULT_CIPHERS = "HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL"
-
-
-class TLSContext(object):
-    """object containing contextual information regarding a TLS
-    Connection"""
-    def __init__(self, ssl_version, certfile=None, keyfile=None, ca_certs=None, ciphers=None):
-        self._DER_CERT = None
-        self._socket = None
-        if ca_certs is None:
-            cert_policy = ssl.CERT_NONE
-        else:
-            cert_policy = ssl.CERT_REQUIRED
-
-        self.__client_args = {
-            'certfile'.encode('utf-8'): certfile,
-            'keyfile'.encode('utf-8'): keyfile,
-            'ca_certs'.encode('utf-8'): ca_certs,
-            'cert_reqs'.encode('utf-8'): cert_policy,
-            'do_handshake_on_connect'.encode('utf-8'): False,
-            "ssl_version".encode('utf-8'): ssl_version,
-        }
-        if sys.version_info >= (2, 7):
-            self.__client_args['ciphers'] = ciphers
-
-    def get_peer_pem_cert(self):
-        if not self._DER_CERT:
-            return
-
-        PEM = ssl.DER_cert_to_PEM_cert(self._DER_CERT)
-        return PEM
-
-    def get_client_args(self):
-        """
-        :returns: a copy of the client args
-        """
-        return self.__client_args.copy()
-
-    def set_der_cert(self, cert):
-        """
-        :param cert: a string with DER cert
-        """
-        self._DER_CERT = cert
-
-    def wrap_socket(self, S):
-        """
-        :param S: a socket
-        """
-        S.setblocking(True)
-        ssl_socket = ssl.wrap_socket(S, **self.get_client_args())
-        try:
-            ssl_socket.do_handshake()
-            S.setblocking(False)
-        except (socket.error, ssl.SSLError) as e:
-            raise TLSUpgradeError(e, self)
-
-        return ssl_socket
-
-    def verify_peer_cert(self, domain, socket):
-        """
-        :param domain:
-        :param socket:
-        """
-        DER_CERT = socket.getpeercert(binary_form=True)
-        self.set_der_cert(DER_CERT)
-
-        try:
-            security.verify_certificate(domain, DER_CERT)
-        except security.CertificateError as e:
-            raise TLSUpgradeError(e, self.tls_context)
-
-    def upgrade_and_verify(self, domain, socket):
-        """
-        :param domain:
-        :param socket:
-        """
-        ssl_socket = self.wrap_socket(socket)
-        self.verify_peer_cert(domain, ssl_socket)
-        return ssl_socket
 
 
 class XMPPConnection(object):
@@ -143,11 +65,11 @@ class XMPPConnection(object):
             'tcp_disconnect',     # the TCP connection was lost
             'tcp_failed',         # the TCP connection failed to be established
 
-            'ssl_established',    # the TLS connection was established
-            'ssl_invalid_chain',  # the TLS handshake failed for invalid chain
-            'ssl_invalid_cert',   # the TLS handshake failed for invalid server cert
-            'ssl_failed',         # failed to establish a TLS connection
-            'ssl_start',          # started SSL negotiation
+            'tls_established',    # the TLS connection was established
+            'tls_invalid_chain',  # the TLS handshake failed for invalid chain
+            'tls_invalid_cert',   # the TLS handshake failed for invalid server cert
+            'tls_failed',         # failed to establish a TLS connection
+            'tls_start',          # started SSL negotiation
 
             'write',              # the TCP/TLS connection is ready to send data
             'read',               # the TCP/TLS connection is ready to receive data
@@ -162,11 +84,11 @@ class XMPPConnection(object):
             self.on.tcp_disconnect(lambda event, data: stderr.bold_red("TCP DISCONNECT: {0}".format(data)))
             self.on.tcp_failed(lambda event, data: stderr.red("TCP FAILED: {0}".format(data)))
 
-            self.on.ssl_established(lambda event, pem_cert: stderr.green("SSL ESTABLISHED: {0}".format(pem_cert)))
-            self.on.ssl_failed(lambda event, error: stderr.red("SSL FAILED: {0}".format(error)))
-            self.on.ssl_invalid_chain(lambda event, error: stderr.red("SSL INVALID CHAIN: {0}".format(error)))
-            self.on.ssl_invalid_cert(lambda event, error: stderr.red("SSL INVALID CERT: {0}".format(error)))
-            self.on.ssl_start(lambda event, tls: stderr.bold_magenta("SSL NEGOTIATION STARTED: {0}".format(tls)))
+            self.on.tls_established(lambda event, pem_cert: stderr.green("SSL ESTABLISHED: {0}".format(pem_cert)))
+            self.on.tls_failed(lambda event, error: stderr.red("SSL FAILED: {0}".format(error)))
+            self.on.tls_invalid_chain(lambda event, error: stderr.red("SSL INVALID CHAIN: {0}".format(error)))
+            self.on.tls_invalid_cert(lambda event, error: stderr.red("SSL INVALID CERT: {0}".format(error)))
+            self.on.tls_start(lambda event, tls: stderr.bold_magenta("SSL NEGOTIATION STARTED: {0}".format(tls)))
 
             self.on.read(lambda event, data: stderr.yellow("XMPP RECV: {0}".format(data)))
             self.on.write(lambda event, data: stderr.blue("XMPP SEND: {0}".format(data)))
@@ -255,42 +177,42 @@ class XMPPConnection(object):
     def is_alive(self):
         return self.__alive
 
-    def downgrade_to_tcp(self, reconnect_timeout_in_seconds=3):
-        if not self.tls_context:
-            logger.warning("already downgraded to TCP")
-            return
+    # def downgrade_to_tcp(self, reconnect_timeout_in_seconds=3):
+    #     if not self.tls_context:
+    #         logger.warning("already downgraded to TCP")
+    #         return
 
-        self.tls_context = None
-        try:
-            self.socket = self.socket.unwrap()
-        except (AttributeError, socket.error):
-            self.socket = None
-            self.reconnect(reconnect_timeout_in_seconds)
-        else:
-            self.on.tcp_downgraded.shout({
-                'socket': self.socket.fileno(),
-                'host': self.host,
-            })
+    #     self.tls_context = None
+    #     try:
+    #         self.socket = self.socket.unwrap()
+    #     except (AttributeError, socket.error):
+    #         self.socket = None
+    #         self.reconnect(reconnect_timeout_in_seconds)
+    #     else:
+    #         self.on.tcp_downgraded.shout({
+    #             'socket': self.socket.fileno(),
+    #             'host': self.host,
+    #         })
 
-    def upgrade_to_tls(self, domain, ssl_version, **kw):
-        if self.tls_context:
-            raise RuntimeError('already upgraded!')
+    # def upgrade_to_tls(self, domain, ssl_version, **kw):
+    #     if self.tls_context:
+    #         raise RuntimeError('already upgraded!')
 
-        self.tls_context = TLSContext(ssl_version, **kw)
+    #     self.tls_context = TLSContext(ssl_version, **kw)
 
-        try:
-            ssl_socket = self.tls_context.upgrade_and_verify(domain, self.socket)
-        except TLSUpgradeError as e:
-            return self.on.ssl_failed.shout(e)
+    #     try:
+    #         ssl_socket = self.tls_context.upgrade_and_verify(domain, self.socket)
+    #     except TLSUpgradeError as e:
+    #         return self.on.tls_failed.shout(e)
 
-        if hasattr(self.socket, 'socket'):
-            # We are using a testing socket, so preserve the top
-            # layer of wrapping.
-            self.socket.socket = ssl_socket
-        else:
-            self.socket = ssl_socket
+    #     if hasattr(self.socket, 'socket'):
+    #         # We are using a testing socket, so preserve the top
+    #         # layer of wrapping.
+    #         self.socket.socket = ssl_socket
+    #     else:
+    #         self.socket = ssl_socket
 
-        self.on.ssl_established.shout(self)
+    #     self.on.tls_established.shout(self)
 
     def perform_write(self, connection):
         self.on.ready_to_write.shout(self)
@@ -313,7 +235,7 @@ class XMPPConnection(object):
             data = connection.recv(self.recv_chunk_size)
         except socket.error as e:
             if self.tls_context:
-                self.on.ssl_failed.shout(e)
+                self.on.tls_failed.shout(e)
             else:
                 self.on.tcp_disconnect.shout(e)
 
@@ -357,9 +279,86 @@ class ConnectionInterrupted(Exception):
     pass
 
 
-class TLSUpgradeError(Exception):
-    def __init__(self, error, context):
-        self.error = error
-        self.context = context
-        message = '{0}'.format(error)
-        super(TLSUpgradeError, self).__init__(message)
+# class TLSContext(object):
+#     """object containing contextual information regarding a TLS
+#     Connection"""
+#     def __init__(self, ssl_version, certfile=None, keyfile=None, ca_certs=None, ciphers=None):
+#         self._DER_CERT = None
+#         self._socket = None
+#         if ca_certs is None:
+#             cert_policy = ssl.CERT_NONE
+#         else:
+#             cert_policy = ssl.CERT_REQUIRED
+
+#         self.__client_args = {
+#             'certfile': certfile,
+#             'keyfile': keyfile,
+#             'ca_certs': ca_certs,
+#             'cert_reqs': cert_policy,
+#             'do_handshake_on_connect': False,
+#             "ssl_version": ssl_version,
+#         }
+#         if sys.version_info >= (2, 7):
+#             self.__client_args['ciphers'] = ciphers
+
+#     def get_peer_pem_cert(self):
+#         if not self._DER_CERT:
+#             return
+
+#         PEM = ssl.DER_cert_to_PEM_cert(self._DER_CERT)
+#         return PEM
+
+#     def get_client_args(self):
+#         """
+#         :returns: a copy of the client args
+#         """
+#         return self.__client_args.copy()
+
+#     def set_der_cert(self, cert):
+#         """
+#         :param cert: a string with DER cert
+#         """
+#         self._DER_CERT = cert
+
+#     def wrap_socket(self, S):
+#         """
+#         :param S: a socket
+#         """
+#         S.setblocking(True)
+#         ssl_socket = ssl.wrap_socket(S, **self.get_client_args())
+#         try:
+#             ssl_socket.do_handshake()
+#             S.setblocking(False)
+#         except (socket.error, ssl.SSLError) as e:
+#             raise TLSUpgradeError(e, self)
+
+#         return ssl_socket
+
+#     def verify_peer_cert(self, domain, socket):
+#         """
+#         :param domain:
+#         :param socket:
+#         """
+#         DER_CERT = socket.getpeercert(binary_form=True)
+#         self.set_der_cert(DER_CERT)
+
+#         try:
+#             security.verify_certificate(domain, DER_CERT)
+#         except security.CertificateError as e:
+#             raise TLSUpgradeError(e, self.tls_context)
+
+#     def upgrade_and_verify(self, domain, socket):
+#         """
+#         :param domain:
+#         :param socket:
+#         """
+#         ssl_socket = self.wrap_socket(socket)
+#         self.verify_peer_cert(domain, ssl_socket)
+#         return ssl_socket
+
+# class TLSUpgradeError(Exception):
+#     def __init__(self, error, context):
+#         self.error = error
+#         self.context = context
+#         message = '{0}'.format(error)
+#         super(TLSUpgradeError, self).__init__(message)

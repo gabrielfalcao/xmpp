@@ -76,8 +76,8 @@ class Node(object):
         # self._original = element.copy()
         self._element = fixup_element(element)
         self._closed = closed or self.__single__
-        if not element.tag:
-            raise TypeError('invalid element {0}'.format(element))
+        # if not element.tag:
+        #     raise TypeError('invalid element {0}'.format(element))
 
         self._tag, self._namespaces = self.extract_namespace(element.tag)
 
@@ -100,6 +100,10 @@ class Node(object):
 
     def close(self):
         self._closed = True
+
+    @property
+    def is_closed(self):
+        return self.__single__ or self._closed
 
     def is_parent_of(self, other_node):
         return other_node.__children_of__ == self.__class__
@@ -157,10 +161,6 @@ class Node(object):
     def namespaces(self):
         return self._namespaces.copy()
 
-    @property
-    def is_closed(self):
-        return self.__single__ or self._closed
-
     def query(self, xpath):
         items = []
         for element in self._element.findall(xpath):
@@ -198,13 +198,10 @@ class Node(object):
 
         self._element.text += bytes(text)
 
-        enclosing = '</{0}>'.format(self.tag)
-        if enclosing in text or text.strip().endswith('/>'):
-            self.close()
-
     def append(self, node):
         if self.is_closed:
-            raise TypeError('I refuse to append a child in a closed node')
+            msg = 'Refused to append a child to the closed node: {0}'
+            raise TypeError(msg.format(self.to_xml()))
 
         self._element.append(node._element)
 
@@ -221,9 +218,6 @@ class Node(object):
         if self.attr:
             data['attributes'] = dict(self.attr)
 
-        if self.namespaces:
-            data['namespaces'] = dict(self.namespaces)
-
         return data
 
     def to_xml(self):
@@ -233,9 +227,6 @@ class Node(object):
         return self.to_xml()
 
     def __repr__(self):
-        if self._element is None:
-            return '{0}(_element=None)'.format(self.__class__.__name__)
-
         return '{3}(tag={0}, attributes={1}, namespaces={2})'.format(
             self._element.tag,
             self.attr,
