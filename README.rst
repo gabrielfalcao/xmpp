@@ -22,56 +22,25 @@ Acknowledgements
 
 This library was mostly written from scratch, except for the ``xmpp.sasl`` which is a modified copy of the contents of the ``pyxmpp2`` library
 
+Documentation
+=============
 
-Examples
-========
+Available at `xmpp.readthedocs.io <https://xmpp.readthedocs.io/en/latest/>`_
 
 
-Echo Bot
---------
+Client Bot Examples
+===================
 
-.. code:: python
+You can find some in the examples folder:
 
-    from xmpp import XMLStream
-    from xmpp import XMPPConnection
-    from xmpp import JID
-    from xmpp.auth import SASLAuthenticationHandler
+* `Echo Bot <https://github.com/gabrielfalcao/xmpp/blob/master/examples/echobot.py>`_: Auto Replies to anyone who messages it
+* `Service Discovery <https://github.com/gabrielfalcao/xmpp/blob/master/examples/service_discovery.py>`_: How to use the Disco (xep 0030)
+* `Client that automatically sends presence and befriends anyone who sends it presence <https://github.com/gabrielfalcao/xmpp/blob/master/examples/presence-auto-subscriber.py>`_:
 
-    DEBUG = True
 
-    DOMAIN = 'falcao.it'
-    jid = JID('presence1@falcao.it/xmpp-test')
-    password = 'presence1'
-    SASL_MECHANISM = 'SCRAM-SHA-1'
+Component Examples
+==================
 
-    sasl = SASLAuthenticationHandler(SASL_MECHANISM, jid, password)
+You can find some in the examples folder:
 
-    # create a network connection
-    connection = XMPPConnection(DOMAIN, 5222, debug=DEBUG)
-    # create handler of XML nodes
-    stream = XMLStream(connection, debug=DEBUG)
-    # attach the authenticator to events of the stream
-    sasl.bind(stream)
-
-    @stream.on.bound_jid
-    def step5_send_presence(event, jid):
-        stream.send_presence()
-        logging.info("echobot jid: %s", jid.text)
-
-    @stream.on.message
-    def act_as_echobot(event, message):
-        "finally the echobot"
-        stream.send_presence()
-
-        from_jid = JID(message.attr['from'])
-        if message.is_composing():
-            logging.warning("%s is composing", from_jid.nick)
-
-        if message.is_active():
-            logging.warning("%s is active", from_jid.nick)
-
-        body = message.get_body()
-        if body:
-            logging.critical("%s says: %s", from_jid.nick, body)
-            stream.send_message(body, to=from_jid.text)
-            stream.send_presence(to=from_jid.text)
+* `Component that automatically sends presence and befriends anyone who sends it presence <https://github.com/gabrielfalcao/xmpp/blob/master/examples/component-presence-proxy.py>`_:
