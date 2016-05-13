@@ -14,9 +14,6 @@ API Reference
 .. automodule:: xmpp.security
    :members:
 
-.. automodule:: xmpp.sasl
-   :members:
-
 .. automodule:: xmpp.auth
    :members:
 
@@ -26,8 +23,14 @@ API Reference
 .. automodule:: xmpp.stream
    :members:
 
-.. automodule:: xmpp.models
+.. automodule:: xmpp.models.node
+   :members:
+
+.. automodule:: xmpp.models.core
    :members:
 
 .. automodule:: xmpp.extensions
+   :members:
+
+.. automodule:: xmpp.sasl
    :members:

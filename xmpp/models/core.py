@@ -152,6 +152,8 @@ class Stream(Node):
 
 
 class ComponentStream(Stream):
+    """``<stream:stream xmlns='jabber:component:accept' xmlns:stream='http://etherx.jabber.org/streams' />``"""
+
     __tag__ = 'stream:stream'
     __etag__ = None
     __namespaces__ = [
@@ -161,6 +163,7 @@ class ComponentStream(Stream):
 
 
 class SecretHandshake(Node):
+    """``<handshake>hash</handshake>``"""
     __tag__ = 'handshake'
     __etag__ = '{jabber:component:accept}handshake'
     __namespaces__ = []
@@ -168,11 +171,13 @@ class SecretHandshake(Node):
 
 
 class SuccessHandshake(Node):
+    """``<handshake />``"""
     __etag__ = 'handshake'
     __children_of__ = ComponentStream
 
 
 class ClientStream(Stream):
+    """``<stream:stream xmlns='jabber:client' version="1.0" xmlns:stream='http://etherx.jabber.org/streams' />``"""
     __tag__ = 'stream:stream'
     __etag__ = None
     __namespaces__ = [
@@ -182,6 +187,7 @@ class ClientStream(Stream):
 
 
 class StreamFeatures(Node):
+    """``<stream:features></stream:features>``"""
     __tag__ = 'stream:features'
     __etag__ = '{http://etherx.jabber.org/streams}features'
     __children_of__ = Stream
@@ -198,6 +204,7 @@ class Feature(Node):
 
 
 class SASLMechanismSet(Feature):
+    """``<mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl"></mechanisms>``"""
     __tag__ = 'mechanisms'
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}mechanisms'
     __children_of__ = StreamFeatures
@@ -211,6 +218,7 @@ class SASLMechanismSet(Feature):
 
 
 class SASLMechanism(Node):
+    """``<mechanism></mechanism>``"""
     __tag__ = 'mechanism'
     __single__ = True
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}mechanism'
@@ -219,6 +227,7 @@ class SASLMechanism(Node):
 
 
 class IQRegister(Feature):
+    """``<register xmlns="http://jabber.org/features/iq-register" />``"""
     __tag__ = 'register'
     __single__ = True
     __etag__ = '{http://jabber.org/features/iq-register}register'
@@ -230,6 +239,7 @@ class IQRegister(Feature):
 
 
 class StartTLS(Node):
+    """``<starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls" />``"""
     __tag__ = 'starttls'
     __single__ = True
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-tls}starttls'
@@ -240,6 +250,7 @@ class StartTLS(Node):
 
 
 class ProceedTLS(Node):
+    """``<proceed xmlns="urn:ietf:params:xml:ns:xmpp-tls" />``"""
     __tag__ = 'proceed'
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-tls}proceed'
     __single__ = True
@@ -249,6 +260,7 @@ class ProceedTLS(Node):
 
 
 class Message(Node):
+    """``<message type="chat"></message>``"""
     __etag__ = 'message'
     __children_of__ = Stream
 
@@ -302,6 +314,7 @@ class Message(Node):
 
 
 class Presence(Node):
+    """``<presence></presence>``"""
     __etag__ = 'presence'
     __children_of__ = Stream
 
@@ -329,6 +342,7 @@ class Presence(Node):
 
 
 class IQ(Node):
+    """``<iq></iq>``"""
     __etag__ = 'iq'
     __children_of__ = Stream
 
@@ -340,6 +354,7 @@ class IQ(Node):
 
 
 class IQBind(Node):
+    """``<bind xmlns="urn:ietf:params:xml:ns:xmpp-bind" />``"""
     __tag__ = 'bind'
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-bind}bind'
     __namespaces__ = [

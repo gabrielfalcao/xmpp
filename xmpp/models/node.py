@@ -56,6 +56,11 @@ class MetaNode(type):
 
 
 class Node(object):
+    """Base class for all XML node definitions.
+
+    The xmpp library only supports XML tags that are explicitly
+    defined as python classes that inherit from this one.
+    """
     __tag__ = None
     __etag__ = None
     __namespaces__ = []
@@ -97,8 +102,7 @@ class Node(object):
     def is_parent_of(self, other_node):
         return other_node.__children_of__ == self.__class__
 
-    @classmethod
-    def extract_namespace(cls, attribute):
+    def extract_namespace(self, attribute):
         name, ns = split_tag_and_namespace(attribute.strip())
         if not ns:
             return attribute, OrderedDict()
@@ -107,6 +111,11 @@ class Node(object):
 
     @classmethod
     def create(cls, _stringcontent=None, **kw):
+        """creates a node instance
+
+        :param _stringcontent: the content text of the tag, if any
+        :param **kw: keyword arguments that will become tag attributes
+        """
         params = OrderedDict()
         if not cls.__etag__:
             tag = cls.__tag__
