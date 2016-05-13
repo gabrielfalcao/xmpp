@@ -46,7 +46,7 @@ from xmpp.models import (
     JID,
     StartTLS,
     IQRegister,
-    Delay,
+    PresenceDelay,
     SecretHandshake,
     SuccessHandshake,
     RosterQuery,
@@ -477,7 +477,7 @@ class XMLStream(object):
             if from_jid:
                 delay_params['from_jid'] = from_jid
 
-            presence.append(Delay.create(**delay_params))
+            presence.append(PresenceDelay.create(**delay_params))
 
         if priority:
             node = PresencePriority.create(bytes(priority))

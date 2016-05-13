@@ -56,7 +56,7 @@ class SASLAuthenticationHandler(object):
 
     def authenticate(self):
         message = self.sasl.start(self.properties)
-        self.stream.send_sasl_auth(self.mechanism, message.encode())
+        self.stream.send_sasl_auth(self.mechanism, message)
 
     def on_failure(self, event, error):
         logging.error("Failed SASL negotiation: %s", error)
@@ -65,16 +65,14 @@ class SASLAuthenticationHandler(object):
         if self.stream.has_gone_through_sasl():
             return
 
-        data = challenge.get_data()
-        message = self.sasl.challenge(data)
+        message = self.sasl.challenge(challenge.decoded)
         self.stream.send_sasl_response(self.mechanism, message.encode())
 
     def on_response(self, event, response):
         if self.stream.has_gone_through_sasl():
             return
 
-        data = response.get_data()
-        result = self.sasl.finish(data)
+        result = self.sasl.finish(response.decoded)
         if isinstance(result, sasl.Success):
             self.stream.finish_sasl(result)
             self.on.success.shout(result)

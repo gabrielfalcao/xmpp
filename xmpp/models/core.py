@@ -333,6 +333,14 @@ class Presence(Node):
         return ''
 
     @property
+    def priority(self):
+        node = self.get('priority')
+        if node:
+            return node.value
+
+        return ''
+
+    @property
     def status(self):
         node = self.get('status')
         if node:
@@ -345,21 +353,6 @@ class IQ(Node):
     """``<iq></iq>``"""
     __etag__ = 'iq'
     __children_of__ = Stream
-
-    @staticmethod
-    def with_child_and_attributes(child, **params):
-        node = IQ.create(**params)
-        node.append(child)
-        return node
-
-
-class IQBind(Node):
-    """``<bind xmlns="urn:ietf:params:xml:ns:xmpp-bind" />``"""
-    __tag__ = 'bind'
-    __etag__ = '{urn:ietf:params:xml:ns:xmpp-bind}bind'
-    __namespaces__ = [
-    ]
-    __children_of__ = IQ
 
 
 class ResourceBind(Node):
@@ -450,7 +443,7 @@ class SASLAuth(Node):
     @staticmethod
     def prepare(mechanism, message):
         node = SASLAuth.create(mechanism=mechanism)
-        node.value = message
+        node.value = bytes(message)
         return node
 
 
@@ -486,6 +479,66 @@ class SASLChallenge(Node):
     def get_data(self):
         return self.value.decode('base64')
 
+    @property
+    def decoded(self):
+        return self.get_data()
+
+
+class SASLAborted(Node):
+    __tag__ = 'aborted'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}aborted'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
+
+class SASLIncorrectEncoding(Node):
+    __tag__ = 'incorrect-encoding'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}incorrect-encoding'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
+
+class SASLInvalidAuthzid(Node):
+    __tag__ = 'invalid-authzid'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}invalid-authzid'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
+
+class SASLInvalidMechanism(Node):
+    __tag__ = 'invalid-mechanism'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}invalid-mechanism'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
+
+class SASLMechanismTooWeak(Node):
+    __tag__ = 'mechanism-too-weak'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}mechanism-too-weak'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
+
+class SASLNotAuthorized(Node):
+    __tag__ = 'not-authorized'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}not-authorized'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
+
+class SASLTemporaryAuthFailure(Node):
+    __tag__ = 'temporary-auth-failure'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}temporary-auth-failure'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-sasl'),
+    ]
+
 
 class SASLSuccess(Node):
     __tag__ = 'success'
@@ -497,6 +550,10 @@ class SASLSuccess(Node):
 
     def get_data(self):
         return self.value.decode('base64')
+
+    @property
+    def decoded(self):
+        return self.get_data()
 
 
 class SASLResponse(Node):
@@ -562,7 +619,7 @@ class MessageBody(Node):
     __children_of__ = Message
 
 
-class Delay(Node):
+class PresenceDelay(Node):
     __tag__ = 'delay'
     __etag__ = '{urn:xmpp:delay}delay'
     __single__ = True

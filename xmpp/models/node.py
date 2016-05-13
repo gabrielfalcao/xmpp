@@ -22,6 +22,8 @@ from xmpp.core import split_tag_and_namespace
 from xmpp.core import fixup_element
 from xmpp._registry import _NODE_MAPPING
 
+# ET.register_namespace("stream", "http://etherx.jabber.org/streams")
+
 
 class MetaNode(type):
     def __init__(NodeClass, name, bases, members):
@@ -132,6 +134,12 @@ class Node(object):
             element.text = _stringcontent
 
         return Node.from_element(element, allow_fixedup=True)
+
+    @classmethod
+    def with_child_and_attributes(cls, child, **params):
+        node = cls.create(**params)
+        node.append(child)
+        return node
 
     def set_attribute(self, attr, value):
         self._element.attrib[attr] = value

@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from xmpp.core import ET
 from xmpp.models import Node
 from xmpp.models import IQ
 from xmpp.models import Stream
@@ -118,18 +117,3 @@ def test_create_component_stream():
     # Then it should be an open tag
     result.should.equal(
         '<stream:stream to="component.domain.im" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">')
-
-
-# def test_error_from_xml():
-#     # Given a valid XML
-#     source = ET.XML('''
-#     <stream:error>
-#       <unsupported-stanza-type xmlns='urn:ietf:params:xml:ns:xmpp-streams'/>
-#     </stream:error>
-#     '''.strip())
-
-#     # When I grab a node
-#     node = Node.from_xml(source)
-
-#     # Then it should be an error
-#     import ipdb;ipdb.set_trace()
