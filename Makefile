@@ -57,13 +57,13 @@ fake-devices:
 ensure-dependencies:
 	@pip install -r development.txt
 
-pre-release: tests docs
+release: tests docs
 	@./.release
+	@echo "publishing pre-release to testpypi"
 	@python setup.py register -r pypitest
 	@python setup.py sdist upload -r pypitest
-
-
-release: tests docs
+	@echo "will publish the official release after yuo hit ENTER now..."
+	@read
 	@python setup.py register
 	@python setup.py sdist upload
 
