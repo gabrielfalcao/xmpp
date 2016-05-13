@@ -59,7 +59,10 @@ ensure-dependencies:
 
 release: tests docs
 	@./.release
-	@python setup.py sdist register upload
+	@python setup.py register -r pypitest
+	@python setup.py sdist upload -r pypitest
+	@python setup.py register
+	@python setup.py sdist upload
 
 list:
 	@$(executable) list

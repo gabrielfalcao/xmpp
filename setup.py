@@ -17,6 +17,7 @@
 
 import ast
 import os
+import codecs
 from setuptools import setup, find_packages
 
 
@@ -44,6 +45,11 @@ def read_version():
     return finder.version
 
 
+def local_file(*f):
+    path = os.path.join(os.path.dirname(__file__), *f)
+    return codecs.open(path, 'r', encoding='utf-8').read().encode('utf-8')
+
+
 dependencies = filter(bool, local_file('requirements.txt').splitlines())
 
 
@@ -54,6 +60,7 @@ setup(
         'console_scripts': ['xmpp = xmpp.cli.main:entrypoint'],
     },
     description='stateless and concurrency-agnostic XMPP library for python',
+    long_description=local_file('README.rst'),
     author=u'Gabriel Falcao',
     author_email='gabriel@nacaolivre.org',
     url='https://github.com/gabrielfalcao/xmpp',

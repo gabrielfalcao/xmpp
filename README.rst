@@ -1,5 +1,5 @@
 XMPP
-----
+====
 
 +---------+--------+
 | version | 0.1.0  |
@@ -12,15 +12,22 @@ Simplistic and stateless XMPP implementation for python. A building
 block for non-blocking XMPP clients, components, gateways and servers.
 
 
+
+Acknowledgements
+================
+
+This library was mostly written from scratch, except for the ``xmpp.sasl`` which is a modified copy of the contents of the ``pyxmpp2`` library
+
+
 .. highlight:: python
 
 
 Examples
---------
+========
 
 
 Echo Bot
-~~~~~~~~
+--------
 
 .. code:: python
 
