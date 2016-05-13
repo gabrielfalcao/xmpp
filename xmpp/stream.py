@@ -518,7 +518,7 @@ class XMLStream(object):
         params = {
             'type': 'set',
             'from': from_jid.full,
-            'to': contact_jid.domain
+            'to': from_jid.domain,
         }
         self.send(IQ.with_child_and_attributes(new_contact, **params))
 
