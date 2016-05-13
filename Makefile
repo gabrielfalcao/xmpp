@@ -62,7 +62,7 @@ release: tests docs
 	@echo "publishing pre-release to testpypi"
 	@python setup.py register -r pypitest
 	@python setup.py sdist upload -r pypitest
-	@echo "will publish the official release after yuo hit ENTER now..."
+	@printf "\033[1;33mwill publish the official release after yuo hit ENTER now...\033[0m\n"
 	@read
 	@python setup.py register
 	@python setup.py sdist upload
