@@ -86,11 +86,8 @@ class ServiceDiscovery(Extension):
 
     def initialize(self):
         self.on = Events('disco', [
-            'query_items',
-            'query_info',
-            'item',
-            'identity',
-            'feature',
+            'query_items',  # the server returned a list of items
+            'query_info',   # the server returned a list of identities and features
         ])
         self.stream.on.node(self.route_nodes)
 
@@ -98,9 +95,6 @@ class ServiceDiscovery(Extension):
         ROUTES = {
             QueryInfo: self.on.query_info,
             QueryItems: self.on.query_items,
-            Item: self.on.item,
-            Identity: self.on.identity,
-            Feature: self.on.feature,
         }
         NodeClass = type(node)
         event = ROUTES.get(NodeClass)

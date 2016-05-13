@@ -17,6 +17,7 @@
 
 import sys
 import ssl
+import random
 import socket
 import logging
 import Queue
@@ -35,6 +36,8 @@ DEFAULT_CIPHERS = "HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL"
 
 
 class TLSContext(object):
+    """object containing contextual information regarding a TLS
+    Connection"""
     def __init__(self, ssl_version, certfile=None, keyfile=None, ca_certs=None, ciphers=None):
         self._DER_CERT = None
         self._socket = None
@@ -62,12 +65,21 @@ class TLSContext(object):
         return PEM
 
     def get_client_args(self):
+        """
+        :returns: a copy of the client args
+        """
         return self.__client_args.copy()
 
     def set_der_cert(self, cert):
+        """
+        :param cert: a string with DER cert
+        """
         self._DER_CERT = cert
 
     def wrap_socket(self, S):
+        """
+        :param S: a socket
+        """
         S.setblocking(True)
         ssl_socket = ssl.wrap_socket(S, **self.get_client_args())
         try:
@@ -79,6 +91,10 @@ class TLSContext(object):
         return ssl_socket
 
     def verify_peer_cert(self, domain, socket):
+        """
+        :param domain:
+        :param socket:
+        """
         DER_CERT = socket.getpeercert(binary_form=True)
         self.set_der_cert(DER_CERT)
 
@@ -88,13 +104,29 @@ class TLSContext(object):
             raise TLSUpgradeError(e, self.tls_context)
 
     def upgrade_and_verify(self, domain, socket):
+        """
+        :param domain:
+        :param socket:
+        """
         ssl_socket = self.wrap_socket(socket)
         self.verify_peer_cert(domain, ssl_socket)
         return ssl_socket
 
 
 class XMPPConnection(object):
-    def __init__(self, host, port, debug=False, auto_reconnect=False,
+    """Event-based TCP/TLS connection.
+
+    It buffers up received messages and also the messages to be sent.
+
+    :param host: a string containing a domain or ip address. If a domain is given the name will be resolved before connecting.
+    :param port: defaults to ``5222``. If you are using a component you might point to ``5347`` or something else.
+    :param debug: ``bool`` defaults to ``False``: whether to print the XML traffic on stderr
+    :param queue_class: ``bool`` defaults to :py:class`Queue.Queue`
+    :param hwm_in: ``int`` defaults to 256: how many incomming messages to buffer before blocking
+    :param hwm_out: ``int`` defaults to 256: how many outcomming messages to buffer before blocking
+    :param recv_chunk_size: ``int`` defaults to ``65536``: how many bytes to read at a time.
+    """
+    def __init__(self, host, port=5222, debug=False, auto_reconnect=False,
                  queue_class=Queue.Queue, hwm_in=256, hwm_out=256, recv_chunk_size=65536):
         self.socket = None
         self.tls_context = None
@@ -156,11 +188,13 @@ class XMPPConnection(object):
         self.connect(timeout_in_seconds)
 
     def resolve_dns(self):
+        """resolves the given host"""
         answers = dns.resolver.query(self.host, 'A')
-        for a in answers:
-            self.host = a.address
+        self.host = random.choice(answers).address
 
     def disconnect(self):
+        """disconnects and fires the ``tcp_disconnect`` event.
+        """
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except socket.error:
@@ -176,6 +210,10 @@ class XMPPConnection(object):
         self.on.tcp_disconnect.shout("intentional")
 
     def connect(self, timeout_in_seconds=3):
+        """connects
+
+        :param timeout_in_seconds:
+        """
         # test this without an internet connection to handle edge
         # cases
         if self.socket:
@@ -289,11 +327,21 @@ class XMPPConnection(object):
         self.read_queue.put(data, block=False, timeout=3)
         self.on.ready_to_read.shout(self)
 
-    def send(self, data):
-        self.write_queue.put(data, block=False, timeout=3)
+    def send(self, data, timeout=3):
+        """adds bytes to the be sent in the next time the socket is ready
 
-    def receive(self):
-        return self.read_queue.get(block=False, timeout=3)
+        :param data: the data to be sent
+        :param timeout: ``int`` in seconds
+        """
+        self.write_queue.put(data, block=False, timeout=timeout)
+
+    def receive(self, timeout=3):
+        """retrieves a message from the queue, returns ``None`` if there are
+        no messages.
+
+        :param timeout: ``int`` in seconds
+        """
+        return self.read_queue.get(block=False, timeout=timeout)
 
     def poll(self, timeout=3):
         self.socket.setblocking(False)
