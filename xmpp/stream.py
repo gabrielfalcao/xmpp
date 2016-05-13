@@ -505,7 +505,11 @@ class XMLStream(object):
             jid=contact_jid.full,
             name=contact_jid.nick.title()
         )
-        groups = groups or []
+        if isinstance(groups, basestring):
+            groups = [groups]
+        elif not isinstance(groups, list):
+            groups = []
+
         for group_name in groups:
             group = RosterGroup.create(group_name)
             item.append(group)
