@@ -116,7 +116,7 @@ def application():
 
     try:
         while connection.is_alive():
-            connection.poll()
+            connection.loop_once()
 
     except KeyboardInterrupt as e:
         print "\r{0}".format(traceback.format_exc(e))

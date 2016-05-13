@@ -91,13 +91,13 @@ def application():
 
     try:
         while connection.is_alive():
-            connection.poll()
+            connection.loop_once()
             from_jid = random.choice(PRESENCE_JIDS)
             if stream.is_authenticated_component():
                 stream.send_presence(**{'from': from_jid, 'to': MANAGER_JID})
-                connection.poll()
+                connection.loop_once()
                 stream.add_contact(MANAGER_JID, from_jid=from_jid)
-                connection.poll()
+                connection.loop_once()
 
     except KeyboardInterrupt as e:
         print "\r{0}".format(traceback.format_exc(e))

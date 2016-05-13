@@ -97,10 +97,19 @@ class XMPPConnection(object):
             self.on.tcp_disconnect(lambda event, data: self.reconnect())
 
     def reconnect(self, timeout_in_seconds=3):
+        """reconnects the socket
+
+        **published events**:
+
+        * ``tcp_restablished(host)`` - when succeeded
+        * ``tcp_failed(host)`` - when failed
+
+        :param timeout_in_seconds:
+        """
         self.socket = create_tcp_socket(keep_alive_seconds=3, max_fails=5)
         try:
             self.socket.connect((self.host, self.port))
-            self.on.tcp_restablished.shout(self.host)
+            self.on.tcp_restablished.shout(":".join(map(bytes, [self.host, self.port])))
             self.__alive = True
         except Exception as e:
             self.__alive = False
@@ -115,7 +124,13 @@ class XMPPConnection(object):
         self.host = random.choice(answers).address
 
     def disconnect(self):
-        """disconnects and fires the ``tcp_disconnect`` event.
+        """disconencts the socket
+
+        **published events**:
+
+        * ``tcp_disconnect("intentional")`` - when succeeded
+
+        :param timeout_in_seconds:
         """
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
@@ -146,7 +161,7 @@ class XMPPConnection(object):
             try:
                 self.resolve_dns()
             except dns.resolver.NoAnswer as e:
-                self.on.tcp_failed.shout(dns.resolver.NoAnswer('failed to resolve {0}'.format(self.host)))
+                self.on.tcp_failed.shout('failed to resolve: {0}'.format(self.host))
                 return
 
         self.socket = create_tcp_socket(keep_alive_seconds=3, max_fails=5)
@@ -157,25 +172,104 @@ class XMPPConnection(object):
         except Exception as e:
             self.__alive = False
             logger.exception("Failed to connect to %s:%s", self.host, self.port)
-            self.on.tcp_failed.shout(e)
+            self.on.tcp_failed.shout(str(e))
 
-    def send_whitespace_keepalive(self):
-        connection = socket_ready(self.socket, 0.1)
+    def send_whitespace_keepalive(self, timeout=3):
+        """sends a whitespace keepalive to avoid
+        `connection timeouts <https://tools.ietf.org/html/rfc6120#section-4.9.3.4>`_
+        and `dead connections <https://tools.ietf.org/html/rfc6120#section-4.6.1>`_s
+
+        **published events**:
+
+        * ``tcp_disconnect("intentional")`` - when succeeded
+
+        :param timeout_in_seconds:
+        """
+
+        connection = socket_ready(self.socket, timeout)
         if connection.write:
             try:
                 connection.write.sendall(b' ')
+                return True
             except socket.error as e:
-                if e.errno == 32:  # broken pipe
-                    logger.warning(e)
-                else:
-                    self.on.tcp_disconnect.shout(e)
-
-            return True
+                self.on.tcp_disconnect.shout(str(e))
 
         return False
 
     def is_alive(self):
+        """
+        :returns: ``True`` if the connection is alive
+        """
         return self.__alive
+
+    def perform_write(self, connection):
+        """
+        consumes the write queue and writes to the given socket
+
+        :param connection: a socket that is ready to write
+        """
+        self.on.ready_to_write.shout(self)
+        try:
+            data = self.write_queue.get(block=False, timeout=3)
+        except Queue.Empty:
+            return
+
+        try:
+            connection.sendall(data)
+            self.on.write.shout(data)
+        except socket.error as e:
+            self.write_queue.put(data, block=False)
+            self.on.tcp_disconnect.shout(str(e))
+            logger.warning('failed to write data (%s): %s', str(e), data)
+
+    def perform_read(self, connection):
+        """
+        reads from the socket and populates the read queue
+        :param connection: a socket that is ready to write
+        """
+        data = None
+        try:
+            data = connection.recv(self.recv_chunk_size)
+        except socket.error as e:
+            self.on.tcp_disconnect.shout(str(e))
+            logger.warning('failed to read data of chunk size: %s', self.recv_chunk_size)
+            return
+
+        if not data:
+            return
+
+        self.on.read.shout(data)
+        self.read_queue.put(data, block=False, timeout=3)
+        self.on.ready_to_read.shout(self)
+
+    def send(self, data, timeout=3):
+        """adds bytes to the be sent in the next time the socket is ready
+
+        :param data: the data to be sent
+        :param timeout: ``int`` in seconds
+        """
+        self.write_queue.put(data, block=False, timeout=timeout)
+
+    def receive(self, timeout=3):
+        """retrieves a message from the queue, returns ``None`` if there are
+        no messages.
+
+        :param timeout: ``int`` in seconds
+        """
+        return self.read_queue.get(block=False, timeout=timeout)
+
+    def loop_once(self, timeout=3):
+        """entrypoint for any mainloop.
+
+        basically call this continuously to keep the connection up
+        """
+        self.socket.setblocking(False)
+        socket = socket_ready(self.socket, timeout)
+        if socket.read:
+            self.perform_read(socket.read)
+
+        if socket.write:
+            self.perform_write(socket.write)
 
     # def downgrade_to_tcp(self, reconnect_timeout_in_seconds=3):
     #     if not self.tls_context:
@@ -213,66 +307,6 @@ class XMPPConnection(object):
     #         self.socket = ssl_socket
 
     #     self.on.tls_established.shout(self)
-
-    def perform_write(self, connection):
-        self.on.ready_to_write.shout(self)
-        try:
-            data = self.write_queue.get(block=False, timeout=3)
-        except Queue.Empty:
-            return
-
-        try:
-            connection.sendall(data)
-            self.on.write.shout(data)
-        except socket.error as e:
-            self.write_queue.put(data, block=False)
-            self.on.tcp_disconnect.shout(e)
-            logger.exception('failed to write data: %s', data)
-
-    def perform_read(self, connection):
-        data = None
-        try:
-            data = connection.recv(self.recv_chunk_size)
-        except socket.error as e:
-            if self.tls_context:
-                self.on.tls_failed.shout(e)
-            else:
-                self.on.tcp_disconnect.shout(e)
-
-            logger.exception('failed to read data of chunk size: %s', self.recv_chunk_size)
-
-        if data:
-            self.on.read.shout(data)
-        else:
-            return
-
-        self.read_queue.put(data, block=False, timeout=3)
-        self.on.ready_to_read.shout(self)
-
-    def send(self, data, timeout=3):
-        """adds bytes to the be sent in the next time the socket is ready
-
-        :param data: the data to be sent
-        :param timeout: ``int`` in seconds
-        """
-        self.write_queue.put(data, block=False, timeout=timeout)
-
-    def receive(self, timeout=3):
-        """retrieves a message from the queue, returns ``None`` if there are
-        no messages.
-
-        :param timeout: ``int`` in seconds
-        """
-        return self.read_queue.get(block=False, timeout=timeout)
-
-    def poll(self, timeout=3):
-        self.socket.setblocking(False)
-        socket = socket_ready(self.socket, timeout)
-        if socket.read:
-            self.perform_read(socket.read)
-
-        if socket.write:
-            self.perform_write(socket.write)
 
 
 class ConnectionInterrupted(Exception):
