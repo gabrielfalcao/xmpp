@@ -68,8 +68,6 @@ mechanism-dependant, but these are the usually expected properties:
 
 from __future__ import absolute_import, division
 
-__docformat__ = "restructuredtext en"
-
 import uuid
 import hashlib
 import logging
@@ -85,7 +83,7 @@ except ImportError:
     # pylint: disable=C0103
     abstractclassmethod = classmethod
 
-logger = logging.getLogger("pyxmpp2.sasl.core")
+logger = logging.getLogger("xmpp.sasl.core")
 
 CLIENT_MECHANISMS_D = {}
 CLIENT_MECHANISMS = []

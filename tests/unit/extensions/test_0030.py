@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from mock import ANY
-from xmpp.stream import FakeStream
+from xmpp.stream import FakeXMLStream
 from xmpp.extensions.xep0030 import ServiceDiscovery
 from xmpp.extensions.xep0030 import Identity
 from xmpp.extensions.xep0030 import Item
@@ -32,7 +32,7 @@ def test_disco_query_info():
     ('xep0030.ServiceDiscovery.query_info() should send')
 
     # Given a stream
-    stream = FakeStream('test@foo.com/bar')
+    stream = FakeXMLStream('test@foo.com/bar')
 
     # And an instance of disco
     disco = ServiceDiscovery(stream)
@@ -53,7 +53,7 @@ def test_disco_query_items():
     ('xep0030.ServiceDiscovery.query_items() should send')
 
     # Given a stream
-    stream = FakeStream('test@foo.com/bar')
+    stream = FakeXMLStream('test@foo.com/bar')
 
     # And an instance of disco
     disco = ServiceDiscovery(stream)
@@ -102,7 +102,7 @@ def test_disco_events():
     ('xep0030.ServiceDiscovery should forward events of its known nodes')
 
     # Given a stream
-    stream = FakeStream('test@foo.com/bar')
+    stream = FakeXMLStream('test@foo.com/bar')
 
     # And an event handler
     handle_query_items = EventHandlerMock('query_items')

@@ -1,4 +1,5 @@
 #
+# (C) Copyright 2016 Jacek Konieczny <jajcus@jajcus.net>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -14,23 +15,22 @@
 # License along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
+
+from __future__ import division
+
+import logging
+
+from xmpp.sasl.core import ClientAuthenticator, ServerAuthenticator
+from xmpp.sasl.core import Success, Failure, Challenge, Response
+from xmpp.sasl.core import sasl_mechanism
+
 """PLAIN authentication mechanism for PyXMPP SASL implementation.
 
 Normative reference:
   - `RFC 4616 <http://www.ietf.org/rfc/rfc4616.txt>`__
 """
 
-from __future__ import absolute_import, division
-
-__docformat__ = "restructuredtext en"
-
-import logging
-
-from .core import ClientAuthenticator, ServerAuthenticator
-from .core import Success, Failure, Challenge, Response
-from .core import sasl_mechanism
-
-logger = logging.getLogger("pyxmpp2.sasl.plain")
+logger = logging.getLogger("xmpp.sasl.plain")
 
 
 @sasl_mechanism("PLAIN", 10)

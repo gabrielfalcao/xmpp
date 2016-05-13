@@ -26,8 +26,8 @@ from __future__ import absolute_import, division
 
 __docformat__ = "restructuredtext en"
 
-from .core import ClientAuthenticator, Response, Success
-from .core import sasl_mechanism
+from xmpp.sasl.core import ClientAuthenticator, Response, Success
+from xmpp.sasl.core import sasl_mechanism
 
 
 @sasl_mechanism("EXTERNAL", False, 20)

@@ -17,7 +17,6 @@
 
 import re
 
-from collections import OrderedDict
 from xmpp.core import ET
 from xmpp.models.node import Node
 
@@ -25,44 +24,43 @@ from xmpp.models.node import Node
 class JID(object):
     regex = re.compile(r'^(?P<full>(?P<bare>(?P<nick>[^@]+)?@?(?P<domain>[^/]+)?)(/(?P<resource>\S+)?)?)$')
 
-    def __init__(self, data, generate_resource=False):
+    def __init__(self, data):
         self.data = data
+        self.parts = {}
+
         if isinstance(data, basestring):
             found = self.regex.search(data)
             if found:
                 self.parts = found.groupdict()
-            else:
-                self.parts = {}
+
+        elif isinstance(data, JID):
+            self.parts = data.parts
 
         elif isinstance(data, dict):
             self.parts = data
-        elif isinstance(data, JID):
-            self.parts = data.parts
-        elif not data:
-            self.parts = {}
 
-        if generate_resource and not self.parts.get('resource'):
-            self.parts['resource'] = generate_resource()
+        else:
+            raise TypeError('invalid jid: {0}'.format(repr(data)))
 
     @property
     def full(self):
-        return self.parts.get('full', self.data)
+        return self.parts.get('full', self.text)
 
     @property
     def bare(self):
-        return self.parts.get('bare', self.data)
+        return self.parts.get('bare', self.text)
 
     @property
     def nick(self):
-        return self.parts.get('nick', self.data)
+        return self.parts.get('nick', self.text)
 
     @property
     def domain(self):
-        return self.parts.get('domain', self.data)
+        return self.parts.get('domain', self.text)
 
     @property
     def resource(self):
-        return self.parts.get('resource', self.data)
+        return self.parts.get('resource', self.text)
 
     @property
     def muc(self):
@@ -95,10 +93,8 @@ class Stream(Node):
     def initialize(self):
         self._features = {}
 
-    def to_xml(self, close=False):
+    def to_xml(self):
         xml = super(Stream, self).to_xml()
-        if close:
-            return xml
 
         END = '</stream:stream>'
         if END in xml:
@@ -117,8 +113,12 @@ class Stream(Node):
         return node
 
     @staticmethod
-    def create_component(to):
-        return ComponentStream.create(to=to)
+    def create_component(to, tls=False):
+        node = ComponentStream.create(to=to)
+        if tls:
+            node.append(StartTLS.create())
+
+        return node
 
     def get_features(self):
         children = self.get_children()
@@ -192,8 +192,12 @@ class Feature(Node):
     def get_name(self):
         return self.tag
 
+    @property
+    def name(self):
+        return self.get_name()
 
-class SASLMechanisms(Feature):
+
+class SASLMechanismSet(Feature):
     __tag__ = 'mechanisms'
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}mechanisms'
     __children_of__ = StreamFeatures
@@ -210,7 +214,7 @@ class SASLMechanism(Node):
     __tag__ = 'mechanism'
     __single__ = True
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-sasl}mechanism'
-    __children_of__ = SASLMechanisms
+    __children_of__ = SASLMechanismSet
     __namespaces__ = []
 
 
@@ -252,11 +256,23 @@ class Message(Node):
     def states(self):
         return [c.tag for c in self.get_children()]
 
+    def set_composing(self):
+        self.append(ChatStateComposing.create())
+
     def is_composing(self):
         return 'composing' in self.states
 
+    def set_active(self):
+        self.append(ChatStateActive.create())
+
     def is_active(self):
         return 'active' in self.states
+
+    def set_paused(self):
+        self.append(ChatStatePaused.create())
+
+    def is_paused(self):
+        return 'paused' in self.states
 
     def get_body(self):
         data = []
@@ -264,15 +280,25 @@ class Message(Node):
         for item in self.query('body'):
             data.append(item.value)
 
-        return u''.join(map(unicode, data))
+        return u'\n'.join(map(unicode, data))
 
-    def add_body_text(self, text):
+    def add_text(self, text):
         body = self.get('body')
         if not body:
             body = MessageBody.create()
             self.append(body)
 
         body.add_text(text)
+
+    @classmethod
+    def create(cls, text=None, **kw):
+        if 'type' not in kw:
+            kw['type'] = 'chat'
+
+        node = super(Message, cls).create(**kw)
+        if text:
+            node.add_text(text)
+        return node
 
 
 class Presence(Node):
@@ -568,7 +594,7 @@ class Text(Node):
 
 class StreamError(Error):
     __tag__ = 'stream:error'
-    __tag__ = 'error'
+    __etag__ = 'error'
     __children_of__ = Stream
 
 
@@ -585,6 +611,15 @@ class BadFormat(Error):
 class BadNamespace(Error):
     __tag__ = 'bad-namespace'
     __etag__ = '{urn:ietf:params:xml:ns:xmpp-streams}bad-namespace'
+    __namespaces__ = [
+        ('', 'urn:ietf:params:xml:ns:xmpp-streams')
+    ]
+    __children_of__ = StreamError
+
+
+class InvalidNamespace(Error):
+    __tag__ = 'invalid-namespace'
+    __etag__ = '{urn:ietf:params:xml:ns:xmpp-streams}invalid-namespace'
     __namespaces__ = [
         ('', 'urn:ietf:params:xml:ns:xmpp-streams')
     ]

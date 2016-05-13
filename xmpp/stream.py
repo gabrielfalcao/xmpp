@@ -41,7 +41,7 @@ from xmpp.models import (
     Presence,
     IQ,
     ResourceBind,
-    SASLMechanisms,
+    SASLMechanismSet,
     BoundJid,
     JID,
     StartTLS,
@@ -53,6 +53,8 @@ from xmpp.models import (
     RosterItem,
     RosterGroup,
 )
+
+logger = logging.getLogger('xmpp.stream')
 
 
 class STREAM_STATES(object):
@@ -193,12 +195,12 @@ class XMLStream(object):
         self.on = create_stream_events()
         self.on.node(self.route_nodes)
         # if debug:
-        #     self.on.open(lambda event, data: logging.debug("STREAM OPEN: %s", data))
-        #     self.on.closed(lambda event, data: logging.debug("STREAM CLOSED: %s", data))
-        #     self.on.node(lambda event, node: logging.debug("STREAM NODE: %s", node.to_xml()))
+        #     self.on.open(lambda event, data: logger.debug("STREAM OPEN: %s", data))
+        #     self.on.closed(lambda event, data: logger.debug("STREAM CLOSED: %s", data))
+        #     self.on.node(lambda event, node: logger.debug("STREAM NODE: %s", node.to_xml()))
         # if not debug:
-        #     self.on.unhandled_xml(lambda event, xml: logging.critical("unhandled xml: %s", xml))
-        self.on.unhandled_xml(lambda event, xml: logging.critical("unhandled xml: %s", xml))
+        #     self.on.unhandled_xml(lambda event, xml: logger.critical("unhandled xml: %s", xml))
+        self.on.unhandled_xml(lambda event, xml: logger.warning("unhandled xml: %s", xml))
         self.recycle()
 
     @property
@@ -228,7 +230,7 @@ class XMLStream(object):
 
     def finish_tls_upgrade(self, connection):
         if self._connection != connection:
-            logging.critical("finish_tls_upgrade: weird!!")
+            logger.critical("finish_tls_upgrade: weird!!")
 
         self._tls_connection = connection
 
@@ -273,7 +275,7 @@ class XMLStream(object):
         if event:
             event.shout(node)
         else:
-            logging.warning("received an IQ with invalid 'type': %s", node.to_xml())
+            logger.warning("received an IQ with invalid 'type': %s", node.to_xml())
 
     def route_nodes(self, event, node):
         ROUTES = {
@@ -283,7 +285,7 @@ class XMLStream(object):
             SASLResponse: self.on.sasl_response,
             StartTLS: self.on.start_tls,
             ResourceBind: self.on.bind_support,
-            SASLMechanisms: self.on.sasl_support,
+            SASLMechanismSet: self.on.sasl_support,
             IQRegister: self.on.user_registration,
             StreamError: self.on.error,
             # internal affairs when handling node before shouting it
@@ -299,7 +301,7 @@ class XMLStream(object):
         NodeClass = type(node)
         event = ROUTES.get(NodeClass)
         if type(node) == Node:
-            logging.critical("no model defined for %s: %r", node.to_xml(), node)
+            logger.critical("no model defined for %s: %r", node.to_xml(), node)
 
         if event:
             if hasattr(event, 'shout'):
@@ -483,10 +485,8 @@ class XMLStream(object):
 
         self.send(presence)
 
-    def send_message(self, message, to):
-        node = Message.create(to=to)
-        node.add_body_text(message)
-        self.send(node)
+    def send_message(self, message, **params):
+        self.send(Message.create(message, **params))
 
     def is_authenticated_component(self):
         return self.__success_handshake is not None
@@ -519,7 +519,7 @@ class XMLStream(object):
         self.send(IQ.with_child_and_attributes(new_contact, **params))
 
 
-class FakeStream(object):
+class FakeXMLStream(object):
     """Fake XMLStream that is used for testing extensions that send nodes
     to the server.
     """

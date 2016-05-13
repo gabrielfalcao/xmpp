@@ -1,4 +1,5 @@
 #
+# (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -20,24 +21,53 @@ Normative reference:
   - `RFC 4422 <http://www.ietf.org/rfc/rfc4422.txt>`__
 """
 
-from __future__ import absolute_import, division
+from __future__ import division
 
-__docformat__ = "restructuredtext en"
 
 import logging
 
-from .core import Reply, Response, Challenge, Success, Failure
-from .core import PasswordDatabase
-from .core import CLIENT_MECHANISMS, SECURE_CLIENT_MECHANISMS
-from .core import SERVER_MECHANISMS, SECURE_SERVER_MECHANISMS
-from .core import CLIENT_MECHANISMS_D, SERVER_MECHANISMS_D
+from xmpp.sasl.core import Reply, Response, Challenge, Success, Failure
+from xmpp.sasl.core import PasswordDatabase
+from xmpp.sasl.core import CLIENT_MECHANISMS, SECURE_CLIENT_MECHANISMS
+from xmpp.sasl.core import SERVER_MECHANISMS, SECURE_SERVER_MECHANISMS
+from xmpp.sasl.core import CLIENT_MECHANISMS_D, SERVER_MECHANISMS_D
 
-from . import plain
-from . import external
-from . import scram
+from xmpp.sasl import plain
+from xmpp.sasl import external
+from xmpp.sasl import scram
 
 
-logger = logging.getLogger("pyxmpp2.sasl")
+__all__ = [
+    'filter_mechanism_list',
+    'server_authenticator_factory',
+    'client_authenticator_factory',
+    'scram',
+    'external',
+    'plain',
+    'Success',
+    'Failure',
+    'Challenge',
+    'Response',
+    'Reply',
+    'PasswordDatabase',
+    'CLIENT_MECHANISMS',
+    'CLIENT_MECHANISMS_D',
+    'SECURE_CLIENT_MECHANISMS',
+    'SERVER_MECHANISMS',
+    'SERVER_MECHANISMS_D',
+    'SECURE_SERVER_MECHANISMS',
+]
+
+
+logger = logging.getLogger("xmpp.sasl")
+
+
+def get_client_mechanisms():
+    return CLIENT_MECHANISMS_D.keys()
+
+
+def get_server_mechanisms():
+    return SERVER_MECHANISMS_D.keys()
 
 
 def client_authenticator_factory(mechanism):
@@ -98,22 +128,19 @@ def filter_mechanism_list(mechanisms, properties, allow_insecure=False,
     # pylint: disable=W0212
     result = []
     for mechanism in mechanisms:
+        mechanism = mechanism.upper()
         try:
             if server_side:
                 klass = SERVER_MECHANISMS_D[mechanism]
             else:
                 klass = CLIENT_MECHANISMS_D[mechanism]
         except KeyError:
-            logger.debug(" skipping {0} - not supported".format(mechanism))
             continue
         secure = properties.get("security-layer")
         if not allow_insecure and not klass._pyxmpp_sasl_secure and not secure:
-            logger.debug(
-                " skipping {0}, as it is not secure".format(mechanism))
             continue
         if not klass.are_properties_sufficient(properties):
-            logger.debug(" skipping {0}, as the properties are not sufficient"
-                         .format(mechanism))
             continue
+
         result.append(mechanism)
     return result

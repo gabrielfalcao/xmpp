@@ -30,11 +30,11 @@ import logging
 
 import hashlib
 
-from .core import ClientAuthenticator, ServerAuthenticator
-from .core import Failure, Response, Challenge, Success, Failure
-from .core import sasl_mechanism, default_nonce_factory
+from xmpp.sasl.core import ClientAuthenticator, ServerAuthenticator
+from xmpp.sasl.core import Failure, Response, Challenge, Success, Failure
+from xmpp.sasl.core import sasl_mechanism, default_nonce_factory
 
-logger = logging.getLogger("pyxmpp2.sasl.digest_md5")
+logger = logging.getLogger("xmpp.sasl.digest_md5")
 
 QUOTE_RE = re.compile(br"(?<!\\)\\(.)")
 PARAM_RE = re.compile(br'^(?P<var>[^=]+)\=(?P<val>(\"(([^"\\]+)|(\\\")'

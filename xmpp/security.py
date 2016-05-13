@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 from datetime import datetime
 from pyasn1.codec.der import decoder
 from pyasn1.type.univ import OctetString
@@ -36,9 +35,6 @@ from pyasn1_modules.rfc2459 import id_at_commonName as COMMON_NAME
 
 XMPP_ADDR = ObjectIdentifier('1.3.6.1.5.5.7.8.5')
 SRV_NAME = ObjectIdentifier('1.3.6.1.5.5.7.8.7')
-
-
-log = logging.getLogger(__name__)
 
 
 class CertificateError(Exception):

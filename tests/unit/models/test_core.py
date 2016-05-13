@@ -17,26 +17,85 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from xmpp.models import JID
+from xmpp.models import SASLMechanismSet, SASLMechanism, Message
 
 
-def test_jid_from_string():
-    ('JID() should accept a string')
+def test_feature_name():
+    ('xmpp.models.core.Feature should have a name')
 
-    # Given a JID from string
-    item = JID('user@domain.com/resource')
+    SASLMechanismSet.create().name.should.equal('mechanisms')
 
-    # It can be represented as a full jid
-    item.full.should.equal('user@domain.com/resource')
 
-    # It can be represented as a bare jid
-    item.bare.should.equal('user@domain.com')
+def test_supported_sasl_mechanisms():
+    ('xmpp.models.core.SASLMechanismSet should return a list')
 
-    # It has the nick
-    item.nick.should.equal('user')
+    mechanisms = SASLMechanismSet.create()
+    mechanisms.append(SASLMechanism.create('SCRAM-SHA-1'))
+    mechanisms.append(SASLMechanism.create('MD5-DIGEST'))
+    mechanisms.append(SASLMechanism.create('EXTERNAL'))
 
-    # It has the domain
-    item.domain.should.equal('domain.com')
+    mechanisms.supported_mechanisms().should.equal([
+        'SCRAM-SHA-1',
+        'MD5-DIGEST',
+        'EXTERNAL',
+    ])
 
-    # It has the resource
-    item.resource.should.equal('resource')
+
+def test_message_get_body():
+    ('xmpp.models.core.Message.get_body should return '
+     'the message bodies concatenated as string')
+
+    msg = Message.create('Hello', **{'from': 'foo@bar.com', 'to': 'john@doe.com'})
+    msg.add_text(' World')
+
+    msg.get_body().should.equal('Hello World')
+    msg.to_xml().should.look_like(
+        '<message from="foo@bar.com" to="john@doe.com" type="chat"><body>Hello World</body></message>')
+
+
+def test_message_composing():
+    ('xmpp.models.core.Message. should return '
+     'the message bodies concatenated as string')
+
+    msg = Message.create('Hello', **{'from': 'foo@bar.com', 'to': 'john@doe.com'})
+    msg.set_composing()
+
+    msg.is_composing().should.be.true
+    msg.to_xml().should.look_like(
+        '<message from="foo@bar.com" to="john@doe.com" type="chat">'
+        '  <body>Hello</body>'
+        '  <composing xmlns="http://jabber.org/protocol/chatstates" />'
+        '</message>'
+    )
+
+
+def test_message_active():
+    ('xmpp.models.core.Message. should return '
+     'the message bodies concatenated as string')
+
+    msg = Message.create('Hello', **{'from': 'foo@bar.com', 'to': 'john@doe.com'})
+    msg.set_active()
+
+    msg.is_active().should.be.true
+    msg.to_xml().should.look_like(
+        '<message from="foo@bar.com" to="john@doe.com" type="chat">'
+        '  <body>Hello</body>'
+        '  <active xmlns="http://jabber.org/protocol/chatstates" />'
+        '</message>'
+    )
+
+
+def test_message_paused():
+    ('xmpp.models.core.Message. should return '
+     'the message bodies concatenated as string')
+
+    msg = Message.create('Hello', **{'from': 'foo@bar.com', 'to': 'john@doe.com'})
+    msg.set_paused()
+
+    msg.is_paused().should.be.true
+    msg.to_xml().should.look_like(
+        '<message from="foo@bar.com" to="john@doe.com" type="chat">'
+        '  <body>Hello</body>'
+        '  <paused xmlns="http://jabber.org/protocol/chatstates" />'
+        '</message>'
+    )

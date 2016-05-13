@@ -33,12 +33,12 @@ import hmac
 from binascii import a2b_base64
 from base64 import standard_b64encode
 
-from .core import ClientAuthenticator, ServerAuthenticator
-from .core import Failure, Response, Challenge, Success, Failure
-from .core import sasl_mechanism, default_nonce_factory
-from .saslprep import SASLPREP
+from xmpp.sasl.core import ClientAuthenticator, ServerAuthenticator
+from xmpp.sasl.core import Failure, Response, Challenge, Success, Failure
+from xmpp.sasl.core import sasl_mechanism, default_nonce_factory
+from xmpp.sasl.saslprep import SASLPREP
 
-logger = logging.getLogger("pyxmpp2.sasl.scram")
+logger = logging.getLogger("xmpp.sasl.scram")
 
 HASH_FACTORIES = {
     "SHA-1": hashlib.sha1,      # pylint: disable=E1101

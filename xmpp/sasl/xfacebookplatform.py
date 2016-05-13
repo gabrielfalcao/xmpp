@@ -27,13 +27,13 @@ __docformat__ = "restructuredtext en"
 
 import logging
 
-from .core import ClientAuthenticator, Response, Success
-from .core import sasl_mechanism
+from xmpp.sasl.core import ClientAuthenticator, Response, Success
+from xmpp.sasl.core import sasl_mechanism
 
 import time
 import urllib
 
-logger = logging.getLogger("pyxmpp2.sasl.xfb")
+logger = logging.getLogger("xmpp.sasl.xfb")
 
 
 @sasl_mechanism(name='X-FACEBOOK-PLATFORM', secure=False, preference=100)

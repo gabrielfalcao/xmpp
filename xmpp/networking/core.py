@@ -28,6 +28,7 @@ from xmpp.networking.util import create_tcp_socket
 from xmpp.networking.util import address_is_ip
 from xmpp.networking.util import socket_ready
 
+logger = logging.getLogger('xmpp.networking')
 stderr = couleur.Shell(sys.stderr, linebreak=True)
 
 DEFAULT_CIPHERS = "HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL"
@@ -149,7 +150,7 @@ class XMPPConnection(object):
             self.__alive = True
         except Exception as e:
             self.__alive = False
-            logging.exception("Failed to connect to %s:%s", self.host, self.port)
+            logger.exception("Failed to connect to %s:%s", self.host, self.port)
             self.on.tcp_failed.shout(e)
 
         self.connect(timeout_in_seconds)
@@ -163,12 +164,12 @@ class XMPPConnection(object):
         try:
             self.socket.shutdown(socket.SHUT_RDWR)
         except socket.error:
-            logging.debug('connection closed')
+            logger.debug('connection closed')
 
         try:
             self.socket.close()
         except:
-            logging.exception("failed to close")
+            logger.exception("failed to close")
 
         self.__alive = False
         self.socket = None
@@ -195,7 +196,7 @@ class XMPPConnection(object):
             self.__alive = True
         except Exception as e:
             self.__alive = False
-            logging.exception("Failed to connect to %s:%s", self.host, self.port)
+            logger.exception("Failed to connect to %s:%s", self.host, self.port)
             self.on.tcp_failed.shout(e)
 
     def send_whitespace_keepalive(self):
@@ -205,7 +206,7 @@ class XMPPConnection(object):
                 connection.write.sendall(b' ')
             except socket.error as e:
                 if e.errno == 32:  # broken pipe
-                    logging.warning(e)
+                    logger.warning(e)
                 else:
                     self.on.tcp_disconnect.shout(e)
 
@@ -218,7 +219,7 @@ class XMPPConnection(object):
 
     def downgrade_to_tcp(self, reconnect_timeout_in_seconds=3):
         if not self.tls_context:
-            logging.warning("already downgraded to TCP")
+            logger.warning("already downgraded to TCP")
             return
 
         self.tls_context = None
@@ -266,7 +267,7 @@ class XMPPConnection(object):
         except socket.error as e:
             self.write_queue.put(data, block=False)
             self.on.tcp_disconnect.shout(e)
-            logging.exception('failed to write data: %s', data)
+            logger.exception('failed to write data: %s', data)
 
     def perform_read(self, connection):
         data = None
@@ -278,7 +279,7 @@ class XMPPConnection(object):
             else:
                 self.on.tcp_disconnect.shout(e)
 
-            logging.exception('failed to read data of chunk size: %s', self.recv_chunk_size)
+            logger.exception('failed to read data of chunk size: %s', self.recv_chunk_size)
 
         if data:
             self.on.read.shout(data)

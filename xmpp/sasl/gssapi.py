@@ -30,10 +30,10 @@ import kerberos
 
 import logging
 
-from .core import ClientAuthenticator, Response, Success
-from .core import sasl_mechanism
+from xmpp.sasl.core import ClientAuthenticator, Response, Success
+from xmpp.sasl.core import sasl_mechanism
 
-logger = logging.getLogger("pyxmpp2.sasl.gssapi")
+logger = logging.getLogger("xmpp.sasl.gssapi")
 
 
 @sasl_mechanism("GSSAPI", 75)
