@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
 #
@@ -88,7 +89,7 @@ def _h_value(data):
 
     :return: MD5 sum of the string.
     :returntype: `bytes`"""
-    # pylint: disable-msg=E1101
+
     return hashlib.md5(data).digest()
 
 
@@ -146,7 +147,7 @@ def _compute_response(urp_hash, nonce, cnonce, nonce_count, authzid,
 
     :return: the computed response value.
     :returntype: `bytes`"""
-    # pylint: disable-msg=C0103,R0913
+
     logger.debug("_compute_response{0!r}".format((urp_hash, nonce, cnonce,
                                                   nonce_count, authzid, digest_uri)))
     if authzid:
@@ -178,7 +179,7 @@ def _compute_response_auth(urp_hash, nonce, cnonce, nonce_count, authzid,
 
     :return: the computed rspauth value.
     :returntype: `bytes`"""
-    # pylint: disable-msg=C0103,R0913
+
     logger.debug("_compute_response_auth{0!r}".format((urp_hash, nonce, cnonce,
                                                        nonce_count, authzid, digest_uri)))
     if authzid:
@@ -212,7 +213,6 @@ class DigestMD5ClientAuthenticator(ClientAuthenticator):
         - ``"username"`` - user name
         - ``"authzid"`` - authorization id
     """
-    # pylint: disable-msg=R0902
 
     def __init__(self):
         """Initialize a `DigestMD5ClientAuthenticator` object."""
@@ -252,7 +252,7 @@ class DigestMD5ClientAuthenticator(ClientAuthenticator):
 
         :return: the response or a failure indicator.
         :returntype: `sasl.Response` or `sasl.Failure`"""
-        # pylint: disable-msg=R0911,R0912
+
         if not challenge:
             logger.debug("Empty challenge")
             return Failure("bad-challenge")
@@ -314,7 +314,7 @@ class DigestMD5ClientAuthenticator(ClientAuthenticator):
 
         :return: the response or a failure indicator.
         :returntype: `sasl.Response` or `sasl.Failure`"""
-        # pylint: disable-msg=R0914,R0915
+
         params = []
         realm = self._get_realm(realms, charset)
         if isinstance(realm, Failure):
@@ -584,7 +584,6 @@ class DigestMD5ServerAuthenticator(ServerAuthenticator):
 
         :return: a challenge, a success indicator or a failure indicator.
         :returntype: `sasl.Challenge`, `sasl.Success` or `sasl.Failure`"""
-        # pylint: disable-msg=R0912
 
         # workaround for some SASL implementations
         response = response.split(b'\x00')[0]
@@ -663,7 +662,7 @@ class DigestMD5ServerAuthenticator(ServerAuthenticator):
 
         :return: a challenge, a success indicator or a failure indicator.
         :returntype: `sasl.Challenge`, `sasl.Success` or `sasl.Failure`"""
-        # pylint: disable-msg=R0913
+
         if not cnonce:
             logger.debug("Required 'cnonce' parameter not given")
             return Failure("not-authorized")
@@ -706,7 +705,7 @@ class DigestMD5ServerAuthenticator(ServerAuthenticator):
         :return: a challenge, a success indicator or a failure indicator.
         :returntype: `sasl.Success` or `sasl.Failure`
         """
-        # pylint: disable-msg=R0912,R0913,R0914
+
         username_uq = username.replace(b'\\', b'')
         if authzid:
             authzid_uq = authzid.replace(b'\\', b'')

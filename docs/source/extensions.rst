@@ -130,3 +130,65 @@ Example
         print "\r{0}".format(traceback.format_exc(e))
 
         raise SystemExit(1)
+
+
+Create your own
+---------------
+
+You can easily have your own implementation of a XEP by extending the
+class :py:class:`xmpp.extensions.Extension`.
+
+As long as your implementation is being imported by your application,
+the XMPP toolkit will automatically recognize your subclass and make
+it available whenever a :py:class:`~xmpp.stream.XMPPStream` is
+instantiated.
+
+
+Here is an example of how to implement a fake *XEP 9999* that sends and accepts the tag:
+
+.. code:: xml
+
+   <iq id="23713d" type="set" from="tybalt@shakespeare.org" to="rosaline@shakespeare.org">
+     <dummy xmlns="xmpp:xep:example">Romeo</dummy>
+   </iq>
+
+
+.. code:: python
+
+from speakers import Speaker as Events
+from xmpp.models import Node, IQ, JID
+from xmpp.extensions import Extension
+
+
+class Dummy(Node):
+    __tag__ = 'dummy'
+    __etag__ = '{xmpp:xep:example}dummy'
+    __namespaces__ = [
+        ('', 'xmpp:xep:example')
+    ]
+    __children_of__ = IQ
+
+
+class Fake(Extension):
+    __xep__ = '9999'
+
+    def initialize(self):
+        self.on = Events('fake', [
+            'dummy',  # the server sent a dummy inside of an IQ
+        ])
+        self.stream.on.node(self.route_nodes)
+
+    def route_nodes(self, _, node):
+        if isinstance(node, Dummy):
+            self.on.dummy.shout(node)
+
+    def send_dummy(self, to, value):
+        params = {
+            'to': to,
+            'type': 'set',
+        }
+        node = IQ.with_child_and_attributes(
+            Dummy.create(value),
+            **params
+        )
+        self.stream.send(node)

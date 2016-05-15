@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2016 Jacek Konieczny <jajcus@jajcus.net>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
@@ -120,5 +121,3 @@ class PlainServerAuthenticator(ServerAuthenticator):
             logger.debug("Bad password. Response was: {0!r}".format(response))
             return Failure("not-authorized")
         return Success(out_props)
-
-# vi: sts=4 et sw=4

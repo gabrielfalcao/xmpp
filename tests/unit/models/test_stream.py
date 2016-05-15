@@ -32,25 +32,10 @@ def test_create_client():
     )
 
 
-def test_create_component():
-    ("xmpp.models.core.Stream.create_component() should return a valid node")
-
-    # Regular Component
-    Stream.create_component(to='capulet.com').to_xml().should.look_like(
-        '<stream:stream to="capulet.com" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">'
-    )
-
-    # TLS Component
-    Stream.create_component(to='capulet.com', tls=True).to_xml().should.look_like(
-        '<stream:stream to="capulet.com" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">'
-        '<starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls" />'
-    )
-
-
 def test_get_features_empty():
     ("xmpp.models.core.Stream.get_features() should return an empty dict")
 
     # Regular Component
-    features = Stream.create_component(to='capulet.com').get_features()
+    features = Stream.create_client(to='capulet.com').get_features()
     features.should.be.a(dict)
     features.should.be.empty

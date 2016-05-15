@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2011 Jacek Konieczny <jajcus@jajcus.net>
 #
@@ -49,6 +50,7 @@ def b1_mapping(char):
     else:
         return None
 
+
 def c12_mapping(char):
     """Do mapping of RFC 3454 C.1.2 space characters to ' '.
 
@@ -62,6 +64,7 @@ def c12_mapping(char):
     else:
         return None
 
+
 def nfkc(data):
     """Do NFKC normalization of Unicode data.
 
@@ -73,12 +76,14 @@ def nfkc(data):
         data = u"".join(data)
     return unicodedata.normalize("NFKC", data)
 
+
 class Profile(object):
     """Base class for stringprep profiles.
     """
     cache_items = []
+
     def __init__(self, unassigned, mapping, normalization, prohibited,
-                                                                bidi = True):
+                 bidi=True):
         """Initialize Profile object.
 
         :Parameters:
@@ -94,7 +99,7 @@ class Profile(object):
             - `prohibited`: tuple of functions
             - `bidi`: `bool`
         """
-        # pylint: disable-msg=R0913
+
         self.unassigned = unassigned
         self.mapping = mapping
         self.normalization = normalization
@@ -133,7 +138,7 @@ class Profile(object):
                 except KeyError:
                     pass
             self.cache_items[:] = self.cache_items[
-                                                -_stringprep_cache_size // 2 :]
+                -_stringprep_cache_size // 2:]
         self.cache_items.append((self, data))
         self.cache[data] = result
         return result
@@ -180,7 +185,7 @@ class Profile(object):
             for lookup in self.prohibited:
                 if lookup(char):
                     raise StringprepError("Prohibited character: {0!r}"
-                                                                .format(char))
+                                          .format(char))
         return data
 
     def check_unassigned(self, data):
@@ -189,7 +194,7 @@ class Profile(object):
             for lookup in self.unassigned:
                 if lookup(char):
                     raise StringprepError("Unassigned character: {0!r}"
-                                                                .format(char))
+                                          .format(char))
         return data
 
     @staticmethod
@@ -205,38 +210,39 @@ class Profile(object):
         if has_l and has_ral:
             raise StringprepError("Both RandALCat and LCat characters present")
         if has_ral and (not stringprep.in_table_d1(data[0])
-                                    or not stringprep.in_table_d1(data[-1])):
+                        or not stringprep.in_table_d1(data[-1])):
             raise StringprepError("The first and the last character must"
-                                                                " be RandALCat")
+                                  " be RandALCat")
         return data
 
 NODEPREP_PROHIBITED = set([u'"', u'&', u"'", u"/", u":", u"<", u">", u"@"])
 
 NODEPREP = Profile(
-    unassigned = (stringprep.in_table_a1,),
-    mapping = (b1_mapping, stringprep.map_table_b2),
-    normalization = nfkc,
-    prohibited = (  stringprep.in_table_c11, stringprep.in_table_c12,
-                    stringprep.in_table_c21, stringprep.in_table_c22,
-                    stringprep.in_table_c3, stringprep.in_table_c4,
-                    stringprep.in_table_c5, stringprep.in_table_c6,
-                    stringprep.in_table_c7, stringprep.in_table_c8,
-                    stringprep.in_table_c9,
-                    lambda x: x in NODEPREP_PROHIBITED ),
-    bidi = True)
+    unassigned=(stringprep.in_table_a1,),
+    mapping=(b1_mapping, stringprep.map_table_b2),
+    normalization=nfkc,
+    prohibited=(stringprep.in_table_c11, stringprep.in_table_c12,
+                stringprep.in_table_c21, stringprep.in_table_c22,
+                stringprep.in_table_c3, stringprep.in_table_c4,
+                stringprep.in_table_c5, stringprep.in_table_c6,
+                stringprep.in_table_c7, stringprep.in_table_c8,
+                stringprep.in_table_c9,
+                lambda x: x in NODEPREP_PROHIBITED),
+    bidi=True)
 
 RESOURCEPREP = Profile(
-    unassigned = (stringprep.in_table_a1,),
-    mapping = (b1_mapping,),
-    normalization = nfkc,
-    prohibited = (  stringprep.in_table_c12, stringprep.in_table_c21,
-                    stringprep.in_table_c22, stringprep.in_table_c3,
-                    stringprep.in_table_c4, stringprep.in_table_c5,
-                    stringprep.in_table_c6, stringprep.in_table_c7,
-                    stringprep.in_table_c8, stringprep.in_table_c9 ),
-    bidi = True)
+    unassigned=(stringprep.in_table_a1,),
+    mapping=(b1_mapping,),
+    normalization=nfkc,
+    prohibited=(stringprep.in_table_c12, stringprep.in_table_c21,
+                stringprep.in_table_c22, stringprep.in_table_c3,
+                stringprep.in_table_c4, stringprep.in_table_c5,
+                stringprep.in_table_c6, stringprep.in_table_c7,
+                stringprep.in_table_c8, stringprep.in_table_c9),
+    bidi=True)
 
-_stringprep_cache_size = 1000 # pylint: disable-msg=C0103
+_stringprep_cache_size = 1000
+
 
 def set_stringprep_cache_size(size):
     """Modify stringprep cache size.
@@ -244,7 +250,7 @@ def set_stringprep_cache_size(size):
     :Parameters:
         - `size`: new cache size
     """
-    # pylint: disable-msg=W0603
+
     global _stringprep_cache_size
     _stringprep_cache_size = size
     if len(Profile.cache_items) > size:

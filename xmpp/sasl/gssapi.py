@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2008 Jelmer Vernooij <jelmer@samba.org>
 # (C) Copyright 2011 Jacek Konieczny <jajcus@jajcus.net>

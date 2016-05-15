@@ -27,6 +27,7 @@ def test_get_known_extensions():
 
     map(lambda (x, y): (x, y.__name__), get_known_extensions()).should.equal([
         ('0030', 'ServiceDiscovery'),
+        ('0114', 'Component'),
     ])
 
 

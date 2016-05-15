@@ -23,6 +23,7 @@ from xmpp.models.core import Node
 from xmpp.models.core import IQ
 from xmpp.models.core import Message
 from xmpp.models.core import Presence
+from xmpp.models.core import Stream
 from xmpp.models.core import ResourceBind
 from xmpp.models.core import MissingJID
 from xmpp.models.core import ServiceUnavailable
@@ -212,20 +213,6 @@ def test_send_message():
     ])
 
 
-def test_is_authenticated_component():
-    ('XMLStream.is_authenticated_component() should return '
-     'true if there is success node in the stream')
-
-    # Given a connection
-    connection = FakeConnection()
-
-    # And a XMLStream
-    stream = XMLStream(connection)
-
-    stream.handle_success_handshake(True)
-    stream.is_authenticated_component().should.be.true
-
-
 def test_handle_message():
     ('XMLStream.handle_message() should forward the `on.message` event')
 
@@ -405,3 +392,32 @@ def test_route_nodes_undefined(logger):
         'no model defined for %s: %r', '<xmpp-unknown name="romeo" type="character" />',
         empty
     )
+
+
+@patch('xmpp.stream.logger')
+def test_id_empty(logger):
+    ('XMLStream.id should return None if there is no stream node stored')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # Then the id is none
+    stream.id.should.be.none
+
+
+@patch('xmpp.stream.logger')
+def test_id(logger):
+    ('XMLStream.id should return the id of its stream node')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+    stream.stream_node = Stream.create(id='what')
+
+    # Then the id is none
+    stream.id.should.equal('what')

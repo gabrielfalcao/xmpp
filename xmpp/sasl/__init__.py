@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
@@ -125,7 +126,7 @@ def filter_mechanism_list(mechanisms, properties, allow_insecure=False,
 
     :returntype: `list` of `unicode`
     """
-    # pylint: disable=W0212
+
     result = []
     for mechanism in mechanisms:
         mechanism = mechanism.upper()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
@@ -77,10 +78,10 @@ from base64 import standard_b64encode
 from abc import ABCMeta, abstractmethod
 
 try:
-    # pylint: disable=E0611
+
     from abc import abstractclassmethod
 except ImportError:
-    # pylint: disable=C0103
+
     abstractclassmethod = classmethod
 
 logger = logging.getLogger("xmpp.sasl.core")
@@ -103,7 +104,7 @@ class PasswordDatabase:
     All the methods of the `PasswordDatabase` may be overridden in derived
     classes for specific authentication and authorization policy.
     """
-    # pylint: disable-msg=W0232,R0201
+
     __metaclass__ = ABCMeta
 
     def get_password(self, username, acceptable_formats, properties):
@@ -132,7 +133,7 @@ class PasswordDatabase:
         :return: the password and its encoding (format).
         :returntype: `unicode`,`unicode` tuple.
         """
-        # pylint: disable-msg=W0613
+
         return None, None
 
     def check_password(self, username, password, properties):
@@ -180,7 +181,6 @@ class PasswordDatabase:
             username = username.encode("utf-8")
             password = password.encode("utf-8")
 
-            # pylint: disable-msg=E1101
             urp_hash = hashlib.md5(b"%s:%s:%s").hexdigest()
             return urp_hash == pwd
         logger.debug(
@@ -207,7 +207,6 @@ class Reply(object):
     :Types:
         - `data`: `bytes`
     """
-    # pylint: disable-msg=R0903
 
     def __init__(self, data=None):
         """Initialize the `Reply` object.
@@ -236,7 +235,6 @@ class Reply(object):
 
 class Challenge(Reply):
     """The challenge SASL message (server's challenge for the client)."""
-    # pylint: disable-msg=R0903
 
     def __init__(self, data):
         """Initialize the `Challenge` object."""
@@ -249,7 +247,6 @@ class Challenge(Reply):
 class Response(Reply):
     """The response SASL message (clients's reply the server's
     challenge)."""
-    # pylint: disable-msg=R0903
 
     def __init__(self, data):
         """Initialize the `Response` object."""
@@ -267,7 +264,6 @@ class Failure(Reply):
     :Types:
         - `reason`: `unicode`.
     """
-    # pylint: disable-msg=R0903
 
     def __init__(self, reason):
         """Initialize the `Failure` object.
@@ -288,7 +284,6 @@ class Success(Reply):
     """The success SASL message (sent by the server on authentication
     success).
     """
-    # pylint: disable-msg=R0903
 
     def __init__(self, properties=None, data=None):
         """Initialize the `Success` object.
@@ -300,7 +295,7 @@ class Success(Reply):
             - `properties`: mapping
             - `data`: `bytes`
         """
-        # pylint: disable-msg=R0913
+
         Reply.__init__(self, data)
         if properties:
             self.properties = properties
@@ -341,7 +336,7 @@ class ClientAuthenticator:
 
         :Return: if the mechanism can be used with those properties
         """
-        # pylint: disable=E0213,W0613,R0201
+
         return False
 
     @abstractmethod
@@ -421,7 +416,7 @@ class ServerAuthenticator:
 
         :Return: if the mechanism can be used with those properties
         """
-        # pylint: disable=E0213,W0613,R0201
+
         return True
 
     @abstractmethod
@@ -458,7 +453,7 @@ class ServerAuthenticator:
 def _key_func(item):
     """Key function used for sorting SASL authenticator classes
     """
-    # pylint: disable-msg=W0212
+
     klass = item[1]
     return (klass._pyxmpp_sasl_secure, klass._pyxmpp_sasl_preference)
 
@@ -467,7 +462,7 @@ def _register_client_authenticator(klass, name):
     """Add a client authenticator class to `CLIENT_MECHANISMS_D`,
     `CLIENT_MECHANISMS` and, optionally, to `SECURE_CLIENT_MECHANISMS`
     """
-    # pylint: disable-msg=W0212
+
     CLIENT_MECHANISMS_D[name] = klass
     items = sorted(CLIENT_MECHANISMS_D.items(), key=_key_func, reverse=True)
     CLIENT_MECHANISMS[:] = [k for (k, v) in items]
@@ -479,7 +474,7 @@ def _register_server_authenticator(klass, name):
     """Add a client authenticator class to `SERVER_MECHANISMS_D`,
     `SERVER_MECHANISMS` and, optionally, to `SECURE_SERVER_MECHANISMS`
     """
-    # pylint: disable-msg=W0212
+
     SERVER_MECHANISMS_D[name] = klass
     items = sorted(SERVER_MECHANISMS_D.items(), key=_key_func, reverse=True)
     SERVER_MECHANISMS[:] = [k for (k, v) in items]
@@ -502,7 +497,7 @@ def sasl_mechanism(name, secure, preference=50):
         - `secure`: `bool`
         - `preference`: `int`
     """
-    # pylint: disable-msg=W0212
+
     def decorator(klass):
         """The decorator."""
         klass._pyxmpp_sasl_secure = secure

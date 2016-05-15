@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2011 Jacek Konieczny <jajcus@jajcus.net>
 #
@@ -41,12 +42,12 @@ from xmpp.sasl.saslprep import SASLPREP
 logger = logging.getLogger("xmpp.sasl.scram")
 
 HASH_FACTORIES = {
-    "SHA-1": hashlib.sha1,      # pylint: disable=E1101
-    "SHA-224": hashlib.sha224,  # pylint: disable=E1101
-    "SHA-256": hashlib.sha256,  # pylint: disable=E1101
-    "SHA-384": hashlib.sha384,  # pylint: disable=E1101
-    "SHA-512": hashlib.sha512,  # pylint: disable=E1101
-    "MD-5": hashlib.md5,        # pylint: disable=E1101
+    "SHA-1": hashlib.sha1,
+    "SHA-224": hashlib.sha224,
+    "SHA-256": hashlib.sha256,
+    "SHA-384": hashlib.sha384,
+    "SHA-512": hashlib.sha512,
+    "MD-5": hashlib.md5,
 }
 
 VALUE_CHARS_RE = re.compile(br"^[\x21-\x2B\x2D-\x7E]+$")
@@ -97,37 +98,35 @@ class SCRAMOperations(object):
         This one also accepts Unicode string input (in the RFC only UTF-8
         strings are used).
         """
-        # pylint: disable=C0103
+
         if isinstance(str_, bytes):
             str_ = str_.decode("utf-8")
         return SASLPREP.prepare(str_).encode("utf-8")
 
     def HMAC(self, key, str_):
         """The HMAC(key, str) function."""
-        # pylint: disable=C0103
+
         return hmac.new(key, str_, self.hash_factory).digest()
 
     def H(self, str_):
         """The H(str) function."""
-        # pylint: disable=C0103
+
         return self.hash_factory(str_).digest()
 
     if sys.version_info.major >= 3:
         @staticmethod
-        # pylint: disable=C0103
         def XOR(str1, str2):
             """The XOR operator for two byte strings."""
             return bytes(a ^ b for a, b in zip(str1, str2))
     else:
         @staticmethod
-        # pylint: disable=C0103
         def XOR(str1, str2):
             """The XOR operator for two byte strings."""
             return "".join(chr(ord(a) ^ ord(b)) for a, b in zip(str1, str2))
 
     def Hi(self, str_, salt, i):
         """The Hi(str, salt, i) function."""
-        # pylint: disable=C0103
+
         Uj = self.HMAC(str_, salt + b"\000\000\000\001")  # U1
         result = Uj
         for _ in range(2, i + 1):
@@ -170,7 +169,6 @@ class SCRAMClientAuthenticator(SCRAMOperations, ClientAuthenticator):
         - `pformat`: current authentication password format
         - `realm`: current authentication realm
     """
-    # pylint: disable-msg=R0902
 
     def __init__(self, hash_name, channel_binding):
         """Initialize a `SCRAMClientAuthenticator` object.
@@ -259,7 +257,7 @@ class SCRAMClientAuthenticator(SCRAMOperations, ClientAuthenticator):
         :return: the response or a failure indicator.
         :returntype: `sasl.Response` or `sasl.Failure`
         """
-        # pylint: disable=R0911
+
         if not challenge:
             logger.debug("Empty challenge")
             return Failure("bad-challenge")
@@ -315,7 +313,6 @@ class SCRAMClientAuthenticator(SCRAMOperations, ClientAuthenticator):
         else:
             channel_binding = b"c=" + standard_b64encode(self._gs2_header)
 
-        # pylint: disable=C0103
         client_final_message_without_proof = (channel_binding + b",r=" + nonce)
 
         client_key = self.HMAC(self._salted_password, b"Client Key")
@@ -609,7 +606,6 @@ class SCRAM_SHA_1_ClientAuthenticator(SCRAMClientAuthenticator):
         - ``"username"`` - user name
         - ``"authzid"`` - authorization id
     """
-    # pylint: disable=C0103
 
     def __init__(self):
         SCRAMClientAuthenticator.__init__(self, "SHA-1", False)
@@ -631,7 +627,6 @@ class SCRAM_SHA_1_PLUS_ClientAuthenticator(SCRAMClientAuthenticator):
     `SCRAM_SHA_1_ClientAuthenticator`
 
     """
-    # pylint: disable=C0103
 
     def __init__(self):
         SCRAMClientAuthenticator.__init__(self, "SHA-1", True)
@@ -666,7 +661,6 @@ class SCRAM_SHA_1_ServerAuthenticator(SCRAMServerAuthenticator):
         - ``"authzid"`` - authorization id
 
     """
-    # pylint: disable=C0103
 
     def __init__(self, password_database):
         SCRAMServerAuthenticator.__init__(self, "SHA-1", False,
@@ -689,7 +683,6 @@ class SCRAM_SHA_1_PLUS_ServerAuthenticator(SCRAMServerAuthenticator):
     `SCRAM_SHA_1_ServerAuthenticator`
 
     """
-    # pylint: disable=C0103
 
     def __init__(self, password_database):
         SCRAMServerAuthenticator.__init__(self, "SHA-1", True,

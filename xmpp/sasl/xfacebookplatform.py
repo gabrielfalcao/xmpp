@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2012 Ramnath Krishnamurthy <k.ramnath@gmail.com>
 # (C) Copyright 2011 Jacek Konieczny <jajcus@jajcus.net>

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # (C) Copyright 2009 Michal Witkowski <neuro@o2.pl>
 # (C) Copyright 2011 Jacek Konieczny <jajcus@jajcus.net>

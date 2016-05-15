@@ -112,14 +112,6 @@ class Stream(Node):
 
         return node
 
-    @staticmethod
-    def create_component(to, tls=False):
-        node = ComponentStream.create(to=to)
-        if tls:
-            node.append(StartTLS.create())
-
-        return node
-
     def get_features(self):
         children = self.get_children()
         if not children:
@@ -149,31 +141,6 @@ class Stream(Node):
 
     def sasl_support(self):
         return self.features.get('urn:ietf:params:xml:ns:xmpp-sasl', [])
-
-
-class ComponentStream(Stream):
-    """``<stream:stream xmlns='jabber:component:accept' xmlns:stream='http://etherx.jabber.org/streams' />``"""
-
-    __tag__ = 'stream:stream'
-    __etag__ = None
-    __namespaces__ = [
-        ('', 'jabber:component:accept'),
-        ('stream', 'http://etherx.jabber.org/streams'),
-    ]
-
-
-class SecretHandshake(Node):
-    """``<handshake>hash</handshake>``"""
-    __tag__ = 'handshake'
-    __etag__ = '{jabber:component:accept}handshake'
-    __namespaces__ = []
-    __children_of__ = ComponentStream
-
-
-class SuccessHandshake(Node):
-    """``<handshake />``"""
-    __etag__ = 'handshake'
-    __children_of__ = ComponentStream
 
 
 class ClientStream(Stream):

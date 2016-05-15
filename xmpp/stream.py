@@ -20,7 +20,6 @@
 import re
 import uuid
 import logging
-import hashlib
 from xmpp.core import ET
 
 from speakers import Speaker as Events
@@ -48,8 +47,6 @@ from xmpp.models import (
     StartTLS,
     IQRegister,
     PresenceDelay,
-    SecretHandshake,
-    SuccessHandshake,
     RosterQuery,
     RosterItem,
     RosterGroup,
@@ -165,10 +162,6 @@ class XMLStream(object):
         self.__bound_jid = jid
         self.on.bound_jid.shout(jid)
 
-    def handle_success_handshake(self, node):
-        self.__success_handshake = node
-        self.on.success_handshake.shout(node)
-
     def handle_message(self, node):
         self.on.message.shout(node)
 
@@ -206,7 +199,6 @@ class XMLStream(object):
             BoundJid: self.handle_bound_jid,
             SASLFailure: self.handle_sasl_failure,
             SASLSuccess: self.handle_sasl_success,
-            SuccessHandshake: self.handle_success_handshake,
         }
         NodeClass = type(node)
         event = ROUTES.get(NodeClass)
@@ -227,8 +219,9 @@ class XMLStream(object):
     def id(self):
         """returns the stream id provided by the server.
 
-        Mainly used by the send_component_handshake() when crafting
-        the secret.
+        Mainly used by the
+        :py:meth:`~xmpp.extensions.xep0114.Component.authenticate`
+        when crafting the secret.
         """
         if self.stream_node is None:
             return
@@ -294,11 +287,6 @@ class XMLStream(object):
         )
         self.send(initial)
 
-    def open_component(self, domain):
-        initial = Stream.create_component(
-            to=domain,
-        )
-        self.send(initial)
 
     def node_did_close(self, node):
         if node.__tag__ == 'stream:stream':
@@ -424,14 +412,6 @@ class XMLStream(object):
 
     def send_message(self, message, **params):
         self.send(Message.create(message, **params))
-
-    def is_authenticated_component(self):
-        return self.__success_handshake is not None
-
-    def send_secret_handshake(self, secret):
-        secret = hashlib.sha1("".join([self.id, secret])).hexdigest()
-        handshake = SecretHandshake.create(secret)
-        self.send(handshake)
 
     def add_contact(self, contact_jid, from_jid=None, groups=None):
         from_jid = JID(from_jid or self.bound_jid)

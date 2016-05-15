@@ -104,22 +104,6 @@ def test_parse_iq():
     item.should.be.an(IQ)
 
 
-def test_create_component_stream():
-    ('ComponentStream.create_component() should return valid open ComponentStream')
-
-    # Given a component opening a stream
-    initial = Stream.create_component(
-        to='component.domain.im'
-    )
-
-    # When I check its xml output
-    result = initial.to_xml()
-
-    # Then it should be an open tag
-    result.should.equal(
-        '<stream:stream to="component.domain.im" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">')
-
-
 def test_equality():
     ('Node objects should be comparable')
 

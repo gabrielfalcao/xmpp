@@ -36,12 +36,20 @@ clean:
 
 unit:
 	nosetests --with-coverage --cover-erase \
-	    --cover-package=xmpp \
+	    --cover-package=xmpp.core \
+	    --cover-package=xmpp.networking \
+	    --cover-package=xmpp.stream \
+	    --cover-package=xmpp.extensions \
+	    --cover-package=xmpp.models \
 	    --verbosity=2 -s --rednose tests/unit
 
 functional:
 	nosetests -x --with-randomly --with-coverage --cover-erase \
-	    --cover-package=xmpp \
+	    --cover-package=xmpp.core \
+	    --cover-package=xmpp.networking \
+	    --cover-package=xmpp.stream \
+	    --cover-package=xmpp.extensions \
+	    --cover-package=xmpp.models \
 	    --verbosity=2 -s --rednose --logging-clear-handlers \
 	    tests/functional
 
