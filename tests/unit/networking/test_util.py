@@ -49,7 +49,7 @@ def test_create_tcp_socket(set_keepalive, socket):
 @patch('xmpp.networking.util.socket')
 @patch('xmpp.networking.util.set_keepalive_osx')
 def test_set_keepalive_on_mac(set_keepalive_osx, socket, os):
-    ('xmpp.networking.util.set_keepalive() should call set_keepalive_osx on Darwin')
+    ('xmpp.networking.util.set_keepalive() should call set_keepalive_osx on OSX')
 
     os.uname.return_value = ['Darwin']
 
@@ -62,7 +62,7 @@ def test_set_keepalive_on_mac(set_keepalive_osx, socket, os):
 @patch('xmpp.networking.util.socket')
 @patch('xmpp.networking.util.set_keepalive_linux')
 def test_set_keepalive_on_linux(set_keepalive_linux, socket, os):
-    ('xmpp.networking.util.set_keepalive() should call set_keepalive_linux on Darwin')
+    ('xmpp.networking.util.set_keepalive() should call set_keepalive_linux on linux')
 
     os.uname.return_value = ['Linux']
 
@@ -73,7 +73,7 @@ def test_set_keepalive_on_linux(set_keepalive_linux, socket, os):
 
 @patch('xmpp.networking.util.socket')
 def test_set_keepalive_osx(socket):
-    ('xmpp.networking.util.set_keepalive_osx() works as expected')
+    ('xmpp.networking.util.set_keepalive_osx() should set socket options')
 
     sock = Mock(name='socket')
     set_keepalive_osx(sock, 42)
@@ -86,7 +86,7 @@ def test_set_keepalive_osx(socket):
 
 @patch('xmpp.networking.util.socket')
 def test_set_keepalive_linux(socket):
-    ('xmpp.networking.util.set_keepalive() should call set_keepalive_linux on Darwin')
+    ('xmpp.networking.util.set_keepalive_linux() should set socket options')
 
     sock = Mock(name='socket')
     set_keepalive_linux(sock, 200, 100, 300)
