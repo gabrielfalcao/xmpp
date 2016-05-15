@@ -16,11 +16,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from mock import Mock, ANY
+from mock import Mock, ANY, patch
 
 from xmpp import XMLStream
+from xmpp.models.core import Node
+from xmpp.models.core import IQ
+from xmpp.models.core import Message
+from xmpp.models.core import Presence
 from xmpp.models.core import ResourceBind
 from xmpp.models.core import MissingJID
+from xmpp.models.core import ServiceUnavailable
 from util import EventHandlerMock, event_test, FakeConnection
 
 
@@ -219,3 +224,184 @@ def test_is_authenticated_component():
 
     stream.handle_success_handshake(True)
     stream.is_authenticated_component().should.be.true
+
+
+def test_handle_message():
+    ('XMLStream.handle_message() should forward the `on.message` event')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_message = EventHandlerMock('on_message')
+    stream.on.message(handle_message)
+
+    # When I call handle message
+    message = Message.create()
+    stream.route_nodes(None, message)
+
+    handle_message.assert_called_once_with(ANY, message)
+
+
+def test_handle_presence():
+    ('XMLStream.handle_presence() should forward the `on.presence` event')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_presence = EventHandlerMock('on_presence')
+    stream.on.presence(handle_presence)
+
+    # When I call handle presence
+    presence = Presence.create()
+    stream.handle_presence(presence)
+
+    handle_presence.assert_called_once_with(ANY, presence)
+
+
+def test_handle_iq_get():
+    ('XMLStream.handle_iq() should forward the `on.iq_get` event')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_iq_get = EventHandlerMock('on_iq_get')
+    stream.on.iq_get(handle_iq_get)
+
+    # When I call handle iq
+    node = IQ.create(type='get')
+    stream.handle_iq(node)
+
+    handle_iq_get.assert_called_once_with(ANY, node)
+
+
+def test_handle_iq_set():
+    ('XMLStream.handle_iq() should forward the `on.iq_set` event')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_iq_set = EventHandlerMock('on_iq_set')
+    stream.on.iq_set(handle_iq_set)
+
+    # When I call handle iq
+    node = IQ.create(type='set')
+    stream.handle_iq(node)
+
+    handle_iq_set.assert_called_once_with(ANY, node)
+
+
+def test_handle_iq_error():
+    ('XMLStream.handle_iq() should forward the `on.iq_error` event')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_iq_error = EventHandlerMock('on_iq_error')
+    stream.on.iq_error(handle_iq_error)
+
+    # When I call handle iq
+    node = IQ.create(type='error')
+    stream.handle_iq(node)
+
+    handle_iq_error.assert_called_once_with(ANY, node)
+
+
+def test_handle_iq_result():
+    ('XMLStream.handle_iq() should forward the `on.iq_result` event')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_iq_result = EventHandlerMock('on_iq_result')
+    stream.on.iq_result(handle_iq_result)
+
+    # When I call handle iq
+    node = IQ.create(type='result')
+    stream.handle_iq(node)
+
+    handle_iq_result.assert_called_once_with(ANY, node)
+
+
+# def test_route_nodes_undefined():
+#     ('XMLStream.route_nodes() should warn about unknown nodes')
+
+#     # Given a connection
+#     connection = FakeConnection()
+
+#     # And a XMLStream
+#     stream = XMLStream(connection)
+
+#     # And an event handler
+#     handle_iq_result = EventHandlerMock('on_iq_result')
+#     stream.on.iq_result(handle_iq_result)
+
+#     # When I call handle iq
+#     node = IQ.create(type='result')
+#     stream.handle_iq(node)
+
+#     handle_iq_result.assert_called_once_with(ANY, node)
+
+
+def test_route_nodes_error():
+    ('XMLStream.route_nodes() should warn about error nodes')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # And an event handler
+    handle_error = EventHandlerMock('on_error')
+    stream.on.error(handle_error)
+
+    # When I call route_nodes
+    node = ServiceUnavailable.create()
+    stream.route_nodes(None, node)
+
+    handle_error.assert_called_once_with(ANY, node)
+
+
+@patch('xmpp.stream.logger')
+def test_route_nodes_undefined(logger):
+    ('XMLStream.route_nodes() should warn about undefined nodes')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I call route_nodes with a bare Node
+    empty = Node.create(type='character', name='romeo')
+    stream.route_nodes(None, empty)
+
+    # Then the logger should have been called appropriately
+    logger.warning.assert_called_once_with(
+        'no model defined for %s: %r', '<xmpp-unknown name="romeo" type="character" />',
+        empty
+    )

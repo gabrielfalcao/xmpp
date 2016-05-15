@@ -131,6 +131,9 @@ class Node(object):
         else:
             tag = cls.__etag__
 
+        if not tag:
+            tag = 'xmpp-unknown'
+
         params.update(kw)
 
         element = ET.Element(tag, **params)

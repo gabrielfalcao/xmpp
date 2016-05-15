@@ -28,6 +28,7 @@ from xmpp.core import generate_id
 from xmpp.extensions import get_known_extensions
 from xmpp.models import (
     Node,
+    Error,
     PresencePriority,
     Stream,
     StreamError,
@@ -77,10 +78,6 @@ class STREAM_STATES(object):
 xml_cleanup_regex1 = re.compile(r'^[<][?]xml[^?]+[^>]+[>]')
 
 
-def is_beginning_of_stream(string):
-    return string.lstrip().startswith('<stream:stream')
-
-
 def sanitize_feed(data):
     data = xml_cleanup_regex1.sub('', data)
     return data.lstrip()
@@ -89,69 +86,6 @@ def sanitize_feed(data):
 def create_spool(data):
     treated = data.replace('><', '>\n<')
     return treated.splitlines()
-
-
-class NodeHandler(object):
-    def __init__(self, parent):
-        self.nodes = []
-        self._data = []
-        self.parent = parent
-
-    def start(self, tag, attrib):
-        parent_node = self.nodes and self.nodes[-1] or None
-        has_parent = parent_node and not parent_node.is_closed
-        element = ET.Element(tag, attrib)
-        node = self.notify_and_store_node(element)
-
-        if has_parent:
-            parent_node.append(node)
-
-        self.parent.node_did_open(node)
-
-    def end(self, tag):
-        current = self.nodes.pop()
-        ancestry = []
-        while self.nodes and not tag == current.__etag__:
-            ancestry.append(current)
-            current = self.nodes.pop()
-
-        if ancestry:
-            self.nodes.extend(ancestry)
-
-        elif not self.nodes:
-            self.nodes.append(current)
-            return
-
-        possible_parent = self.nodes[-1]
-        if possible_parent.is_parent_of(current):
-            self.parent.node_did_close(current)
-
-    def close(self):
-        if not self.nodes:
-            return
-
-        for node in reversed(self.nodes):
-            if node.is_closed:
-                return node._element
-
-        return node._element
-
-    def data(self, data):
-        target = self.nodes[-1]._element
-        if not target.text:
-            target.text = data
-        elif len(target.text) < self.parent.max_text_length:
-            target.text += "\n"
-            target.text += data
-        else:
-            target.text = '[TRUNCATED]'
-
-        return False
-
-    def notify_and_store_node(self, element):
-        node = Node.from_element(element)
-        self.nodes.append(node)
-        return node
 
 
 def create_stream_events():
@@ -226,29 +160,6 @@ class XMLStream(object):
         for number, Extension in get_known_extensions():
             self.extension[number] = Extension(self)
 
-    def has_gone_through_sasl(self):
-        return self.__sasl_result is not None
-
-    def finish_tls_upgrade(self, connection):
-        if self._connection != connection:
-            logger.critical("finish_tls_upgrade: weird!!")
-
-        self._tls_connection = connection
-
-    def is_under_tls(self):
-        return self._tls_connection is not None
-
-    def finish_sasl(self, result):
-        self.__sasl_result = result
-        self.set_state(STREAM_STATES.AUTHENTICATED)
-
-    def handle_sasl_success(self, node):
-        self.on.sasl_success.shout(node)
-
-    def handle_sasl_failure(self, node):
-        self.__sasl_result = None
-        self.on.sasl_failure.shout(node)
-
     def handle_bound_jid(self, node):
         jid = JID(node.value.strip())
         self.__bound_jid = jid
@@ -275,10 +186,8 @@ class XMLStream(object):
         event = ROUTES.get(iq_type)
         if event:
             event.shout(node)
-        else:
-            logger.warning("received an IQ with invalid 'type': %s", node.to_xml())
 
-    def route_nodes(self, event, node):
+    def route_nodes(self, _, node):
         ROUTES = {
             # direct shout throught the event handlers
             ProceedTLS: self.on.tls_proceed,
@@ -302,16 +211,17 @@ class XMLStream(object):
         NodeClass = type(node)
         event = ROUTES.get(NodeClass)
         if type(node) == Node:
-            logger.critical("no model defined for %s: %r", node.to_xml(), node)
+            logger.warning("no model defined for %s: %r", node.to_xml(), node)
+            return
+
+        if isinstance(node, Error):
+            self.on.error.shout(node)
 
         if event:
             if hasattr(event, 'shout'):
                 event.shout(node)
             else:
                 event(node)
-
-        elif NodeClass.__children_of__ == StreamError:
-            self.on.error.shout(node)
 
     @property
     def id(self):
@@ -446,6 +356,28 @@ class XMLStream(object):
     def start_tls_handshake(self, domain):
         self.send(StartTLS.create())
 
+    # def finish_tls_upgrade(self, connection):
+    #     if self._connection != connection:
+    #         logger.critical("finish_tls_upgrade: weird!!")
+
+    #     self._tls_connection = connection
+
+    # def is_under_tls(self):
+    #     return self._tls_connection is not None
+    def handle_sasl_success(self, node):
+        self.on.sasl_success.shout(node)
+
+    def handle_sasl_failure(self, node):
+        self.__sasl_result = None
+        self.on.sasl_failure.shout(node)
+
+    def finish_sasl(self, result):
+        self.__sasl_result = result
+        self.set_state(STREAM_STATES.AUTHENTICATED)
+
+    def has_gone_through_sasl(self):
+        return self.__sasl_result is not None
+
     def send_sasl_auth(self, mechanism, message):
         node = SASLAuth.prepare(mechanism, message.encode())
         self.send(node)
@@ -527,3 +459,56 @@ class XMLStream(object):
         }
         self.send_presence(**{'from': from_jid.bare, 'to': contact_jid.full, 'type': 'subscribe'})
         self.send(IQ.with_child_and_attributes(new_contact, **params))
+
+
+class NodeHandler(object):
+    def __init__(self, parent):
+        self.nodes = []
+        self._data = []
+        self.parent = parent
+
+    def start(self, tag, attrib):
+        parent_node = self.nodes and self.nodes[-1] or None
+        has_parent = parent_node and not parent_node.is_closed
+        element = ET.Element(tag, attrib)
+        node = self.notify_and_store_node(element)
+
+        if has_parent:
+            parent_node.append(node)
+
+        self.parent.node_did_open(node)
+
+    def end(self, tag):
+        current = self.nodes.pop()
+        if not self.nodes:
+            # always have only one node
+            self.nodes.append(current)
+            return
+
+        possible_parent = self.nodes[-1]
+        if possible_parent.is_parent_of(current):
+            self.parent.node_did_close(current)
+
+    def close(self):
+        if not self.nodes:
+            return
+
+        for node in reversed(self.nodes):
+            if node.is_closed:
+                return node._element
+
+        return node._element
+
+    def data(self, data):
+        target = self.nodes[-1]._element
+        if not target.text:
+            target.text = data
+        else:
+            target.text += data
+
+        return False
+
+    def notify_and_store_node(self, element):
+        node = Node.from_element(element)
+        self.nodes.append(node)
+        return node
