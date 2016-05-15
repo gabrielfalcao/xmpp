@@ -45,15 +45,9 @@ unit:
 
 functional:
 	nosetests -x --with-randomly --with-coverage --cover-erase \
-	    --cover-package=xmpp.core \
-	    --cover-package=xmpp.networking \
-	    --cover-package=xmpp.stream \
-	    --cover-package=xmpp.extensions \
-	    --cover-package=xmpp.models \
+	    --cover-package=xmpp \
 	    --verbosity=2 -s --rednose --logging-clear-handlers \
 	    tests/functional
-
-tests: unit functional
 
 continuous-integration: prepare tests
 
