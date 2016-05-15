@@ -144,51 +144,145 @@ it available whenever a :py:class:`~xmpp.stream.XMPPStream` is
 instantiated.
 
 
-Here is an example of how to implement a fake *XEP 9999* that sends and accepts the tag:
+XEP 9999
+~~~~~~~~
+
+Let's come up with our own XEP
+
+
+1. Introduction
+:::::::::::::::
+
+This document defines a protocol for communicating *dummy* from one
+user to another. Such information MUST be appended to a
+``received_dummy_list`` in the *receiving* entity. The entity MAY also
+send a *dummy* which SHALL be appended to a ``sent_dummy_list`` in the
+*sending* entity.
+
+
+2. Protocol
+:::::::::::
+
+
+**Sending a dummy**
 
 .. code:: xml
 
-   <iq id="23713d" type="set" from="tybalt@shakespeare.org" to="rosaline@shakespeare.org">
-     <dummy xmlns="xmpp:xep:example">Romeo</dummy>
-   </iq>
+    <iq id="23713d" type="set" from="tybalt@shakespeare.org" to="rosaline@shakespeare.org">
+      <dummy xmlns="xmpp:xep:example">Romeo</dummy>
+    </iq>
 
+**Receiving a dummy**
+
+.. code:: xml
+
+    <iq id="23713d" type="result" from="tybalt@shakespeare.org" to="rosaline@shakespeare.org">
+      <dummy xmlns="xmpp:xep:example">Juliet</dummy>
+    </iq>
+
+
+**Here is the implementation, notice its statelessness**
 
 .. code:: python
 
-from speakers import Speaker as Events
-from xmpp.models import Node, IQ, JID
-from xmpp.extensions import Extension
+    from speakers import Speaker as Events
+    from xmpp.models import Node, IQ, JID
+    from xmpp.extensions import Extension
 
 
-class Dummy(Node):
-    __tag__ = 'dummy'
-    __etag__ = '{xmpp:xep:example}dummy'
-    __namespaces__ = [
-        ('', 'xmpp:xep:example')
-    ]
-    __children_of__ = IQ
+    class Dummy(Node):
+        __tag__ = 'dummy'
+        __etag__ = '{xmpp:xep:example}dummy'
+        __namespaces__ = [
+            ('', 'xmpp:xep:example')
+        ]
+        __children_of__ = IQ
 
 
-class Fake(Extension):
-    __xep__ = '9999'
+    class Fake(Extension):
+        __xep__ = '9999'
 
-    def initialize(self):
-        self.on = Events('fake', [
-            'dummy',  # the server sent a dummy inside of an IQ
-        ])
-        self.stream.on.node(self.route_nodes)
+        def initialize(self):
+            self.on = Events('fake', [
+                'dummy',  # the server sent a dummy inside of an IQ
+            ])
+            self.stream.on.node(self.route_nodes)
 
-    def route_nodes(self, _, node):
-        if isinstance(node, Dummy):
-            self.on.dummy.shout(node)
+        def route_nodes(self, _, node):
+            if isinstance(node, Dummy):
+                self.on.dummy.shout(node)
 
-    def send_dummy(self, to, value):
-        params = {
-            'to': to,
-            'type': 'set',
-        }
-        node = IQ.with_child_and_attributes(
-            Dummy.create(value),
-            **params
-        )
-        self.stream.send(node)
+        def send_dummy(self, to, value):
+            params = {
+                'to': to,
+                'type': 'set',
+            }
+            node = IQ.with_child_and_attributes(
+                Dummy.create(value),
+                **params
+            )
+            self.stream.send(node)
+
+**Usage of your newly created extension**
+
+.. code:: python
+
+    from xmpp import XMLStream
+    from xmpp import XMPPConnection
+    from xmpp import JID
+    from xmpp.auth import SASLAuthenticationHandler
+
+    DEBUG = True
+
+    DOMAIN = 'shakespeare.oreg'
+    jid = JID('tybalt@shakespeare.oef/cahoots')
+    password = 'sk3tchy'
+
+    SASL_MECHANISM = 'SCRAM-SHA-1'
+
+
+    RECEIVED_DUMMY_LIST = []
+    SENT_DUMMY_LIST = []
+
+    connection = XMPPConnection(DOMAIN, 5222, debug=DEBUG)
+    stream = XMLStream(connection, debug=DEBUG)
+
+    sasl = SASLAuthenticationHandler(SASL_MECHANISM, jid, password)
+    sasl.bind(stream)
+
+    @connection.on.tcp_established
+    def step1_open_stream(event, host_ip):
+        stream.open_client(jid.domain)
+
+    @stream.on.sasl_support
+    def step2_send_sasl_auth(event, node):
+        sasl.authenticate()
+
+    @sasl.on.success
+    def step3_handle_success(event, result):
+        stream.open_client(jid.domain)
+
+    @stream.on.bind_support
+    def step4_bind_to_a_resource_name(event, node):
+        stream.bind_to_resource(jid.resource)
+
+    @stream.on.bound_jid
+    def step5_send_presence(event, jid):
+        dummies.send_dummy(to='rosaline@shakespeare.org', value='Romeo')
+        SENT_DUMMY_LIST.append('Romeo')
+
+    @dummies.on.dummy
+    def step6_store_dummy(event, dummy):
+        RECEIVED_DUMMY_LIST.append(dummy.value)
+
+
+    connection.connect()
+
+    try:
+        while connection.is_alive():
+            connection.loop_once()
+
+    except KeyboardInterrupt as e:
+        print "\r{0}".format(traceback.format_exc(e))
+
+        raise SystemExit(1)
