@@ -447,7 +447,7 @@ class XMLStream(object):
         self.send(StartTLS.create())
 
     def send_sasl_auth(self, mechanism, message):
-        node = SASLAuth.prepare(mechanism, message)
+        node = SASLAuth.prepare(mechanism, message.encode())
         self.send(node)
         return node
 
