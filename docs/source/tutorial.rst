@@ -77,8 +77,8 @@ would output something like this
 .. code:: bash
 
     XMPP SEND: <?xml version='1.0'?><stream:stream
-            from='test@falcao.it'
-            to='falcao.it'
+            from='romeo@capulet.com'
+            to='capulet.com'
             version='1.0'
             xml:lang='en'
             xmlns='jabber:client'
@@ -86,7 +86,7 @@ would output something like this
     XMPP RECV: <?xml version='1.0'?><stream:stream
           xmlns:stream='http://etherx.jabber.org/streams'
           version='1.0'
-          from='falcao.it'
+          from='capulet.com'
           id='c1a2cc21-a35d-4545-807b-2b368e567e4e'
           xml:lang='en'
           xmlns='jabber:client'>
