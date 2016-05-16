@@ -56,7 +56,7 @@ debugging your application.
             self.connection.on.read(self.do_disconnect)
 
         def do_open_stream(self, *args, **kw):
-            self.stream.open(self.user.domain)
+            self.stream.open_client(self.user.domain)
 
         def do_disconnect(self, *args, **kw):
             self.connection.close()

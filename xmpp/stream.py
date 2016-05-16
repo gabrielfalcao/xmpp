@@ -140,6 +140,10 @@ class XMLStream(object):
 
     @property
     def bound_jid(self):
+        """a :py:class:`~xmpp.models.core.JID` or ``None``
+
+        Automatically captured from the XML traffic.
+        """
         return self.__bound_jid
 
     def recycle(self):
@@ -156,6 +160,7 @@ class XMLStream(object):
         self.load_extensions()
 
     def load_extensions(self):
+        """reloads all the available extensions bound to this stream"""
         self.extension = {}
         for number, Extension in get_known_extensions():
             self.extension[number] = Extension(self)
@@ -232,6 +237,8 @@ class XMLStream(object):
         return self.stream_node.attr.get('id')
 
     def parse(self):
+        """attempts to parse whatever is in the buffer of the incremental XML
+        parser and creates a new parser."""
         try:
             if self._buffer and self._buffer[-1].endswith('>'):
                 element = self.parser.close()
@@ -249,14 +256,26 @@ class XMLStream(object):
 
         return Node.from_element(element, allow_fixedup=True)
 
-    def ready_to_read(self, event, connection):
+    def ready_to_read(self, _, connection):
+        """event handler for the ``on.ready_to_read`` event of a XMPP Connection.
+
+        You should probably never have to call this by hand, use
+        :py:meth:`~xmpp.stream.XMLStream.bind` instead
+        """
+
         self.feed(connection.receive())
 
         node = self.parse()
         if node:
             self.on.node.shout(node)
 
-    def ready_to_write(self, event, connection):
+    def ready_to_write(self, _, connection):
+        """even handler for the ``on.ready_to_write`` event of a XMPP
+        Connection.
+
+        You should probably never have to call this by hand, use
+        :py:meth:`~xmpp.stream.XMLStream.bind` instead
+        """
         self.set_state(STREAM_STATES.READY)
         return
 
@@ -272,9 +291,17 @@ class XMLStream(object):
         self.append_node(node)
 
     def send(self, node):
+        """sends a XML serialized Node through the bound XMPP connection
+
+        :param node: the :py:class:`~xmpp.models.node.Node`
+        """
         self._connection.send(node.to_xml())
 
     def close(self, disconnect=True):
+        """sends a final ``</stream:stream>`` to the server then immediately
+        closes the bound TCP connection,disposes it and recycles the
+        minimum state kept by the stream, so it can be reutilized right away.
+        """
         self._connection.send(b'</stream:stream>')
         self._state = STREAM_STATES.IDLE
 
@@ -285,11 +312,14 @@ class XMLStream(object):
         self._connection = None
 
     def open_client(self, domain):
+        """Sends a <stream:stream xmlns="jabber:client"> to the given domain
+
+        :param domain: the FQDN of the XMPP server
+        """
         initial = Stream.create_client(
             to=domain,
         )
         self.send(initial)
-
 
     def node_did_close(self, node):
         if node.__tag__ == 'stream:stream':
@@ -316,6 +346,13 @@ class XMLStream(object):
         return string.rstrip().endswith('</stream:stream>')
 
     def feed(self, data, attempt=1):
+        """feeds the stream with incoming data from the XMPP server.
+        This is the basic entrypoint for usage with the XML received
+        from the :py:class:`~xmpp.networking.core.XMPPConnection`
+
+        :param data: the XML string
+
+        """
         self.on.feed.shout(data)
         data = sanitize_feed(data)
         spool = create_spool(data)
@@ -370,21 +407,40 @@ class XMLStream(object):
         return self.__sasl_result is not None
 
     def send_sasl_auth(self, mechanism, message):
+        """sends a SASL response to the server in order to proceed with authentication handshakes
+
+        :param mechanism: the name of SASL mechanism (i.e. SCRAM-SHA-1, PLAIN, EXTERNAL)
+        """
         node = SASLAuth.prepare(mechanism, message.encode())
         self.send(node)
         return node
 
     def send_sasl_response(self, mechanism, message):
+        """sends a SASL response to the server in order to proceed with authentication handshakes
+
+        :param mechanism: the name of SASL mechanism (i.e. SCRAM-SHA-1, PLAIN, EXTERNAL)
+        """
         node = SASLResponse.prepare(mechanism, message)
         self.send(node)
         return node
 
     def bind_to_resource(self, name):
+        """sends an ``<iq type="set"><resource>name</resource></iq>`` in order to bind the resource
+
+        :param name: the name of the resource
+        """
         iq = IQ.create(type='set', id=generate_id())
         iq.append(ResourceBind.with_resource(name))
         self.send(iq)
 
     def send_presence(self, to=None, delay=None, priority=10, **params):
+        """sends presence
+
+        :param to: jid to receive presence.
+        :param delay: if set, it must be a ISO compatible date string
+        :param priority: the priority of this resource
+        """
+
         from_jid = params.get('from')
         if from_jid:
             from_jid = JID(from_jid)
@@ -413,10 +469,24 @@ class XMLStream(object):
 
         self.send(presence)
 
-    def send_message(self, message, **params):
-        self.send(Message.create(message, **params))
+    def send_message(self, message, to, **params):
+        """
+        :param message: the string with the message
+        :param to: the jid to send the message to
+        :param **params: keyword args for designating attributes of the message
+        """
+        self.send(Message.create(message, to=to, **params))
 
     def add_contact(self, contact_jid, from_jid=None, groups=None):
+        """adds a contact to the roster of the ``bound_jid`` or the provided ``from_jid`` parameter.
+
+        Automatically sends a ``<presence type="subscribe">`` with a
+        subsequent ``<iq type="set">``.
+
+        :param contact_jid: the jid to add in the roster
+        :param from_jid: custom ``from=`` field to designate the owner of the roster
+        :param groups: a list of strings with group names to categorize this contact in the roster
+        """
         from_jid = JID(from_jid or self.bound_jid)
         contact_jid = JID(contact_jid)
 
