@@ -52,7 +52,7 @@ def application():
     def stream_closed(event, node):
         connection.disconnect()
         connection.connect()
-        stream.recycle()
+        stream.reset()
 
     @stream.on.presence
     def handle_presence(event, presence):

@@ -112,18 +112,22 @@ def create_stream_events():
         'iq_error',             # the peer returned a <iq type="error"></iq>
         'user_registration',    # the peer supports user registration
         'bound_jid',            # the peer returned a <jid>username@domain/resource</jid> that should be used in the from= of stanzas
-        'success_handshake',      # the server authorized the component to reopen the stream and start sending stanzas
     ])
 
 
 class XMLStream(object):
-    def __init__(self, connection, max_text_length=1024 * 64, debug=False):
+    """`XML Stream <https://xmpp.org/rfcs/rfc3920.html#streams>`_ behavior class.
+
+    :param connection: a :py:class:`~xmpp.networking.core.XMPPConnection` instance
+    :param debug: whether to print errors to the stderr
+    """
+
+    def __init__(self, connection, debug=False):
         self._state = STREAM_STATES.IDLE
         self._connection = connection
         self._tls_connection = None
         self._connection.on.ready_to_write(self.ready_to_write)
         self._connection.on.ready_to_read(self.ready_to_read)
-        self.max_text_length = max_text_length
         self.extension = {}
         self.on = create_stream_events()
         self.on.node(self.route_nodes)
@@ -136,7 +140,7 @@ class XMLStream(object):
         else:
             self.on.unhandled_xml(lambda event, xml: logger.warning("unhandled xml: %s", xml))
 
-        self.recycle()
+        self.reset()
 
     @property
     def bound_jid(self):
@@ -146,10 +150,14 @@ class XMLStream(object):
         """
         return self.__bound_jid
 
-    def recycle(self):
+    def reset(self):
+        """resets the minimal state of the XML Stream, that is:
+        * attributes of the <stream> sent by the server during negotiation, used by :py:meth:`~xmpp.stream.XMLStream.id`
+        * a bound JID sent by the server
+        * a successful sasl result node to leverage :py:meth:`~xmpp.stream.XMLStream.has_gone_through_sasl`
+        """
         self._buffer = []
         # minimal state:
-        self.__success_handshake = None
         self.__sasl_result = None
         self.__bound_jid = None
 
@@ -225,7 +233,7 @@ class XMLStream(object):
 
     @property
     def id(self):
-        """returns the stream id provided by the server.
+        """returns the stream id provided by the server. ``<stream:stream id="SOMETHING">``
 
         Mainly used by the
         :py:meth:`~xmpp.extensions.xep0114.Component.authenticate`
@@ -299,7 +307,7 @@ class XMLStream(object):
 
     def close(self, disconnect=True):
         """sends a final ``</stream:stream>`` to the server then immediately
-        closes the bound TCP connection,disposes it and recycles the
+        closes the bound TCP connection,disposes it and resets the
         minimum state kept by the stream, so it can be reutilized right away.
         """
         self._connection.send(b'</stream:stream>')
@@ -308,7 +316,7 @@ class XMLStream(object):
         if disconnect:
             self._connection.disconnect()
 
-        self.recycle()
+        self.reset()
         self._connection = None
 
     def open_client(self, domain):
