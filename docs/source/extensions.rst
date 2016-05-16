@@ -132,6 +132,26 @@ Example
         raise SystemExit(1)
 
 
+Component (0114)
+----------------
+
+
+Events
+~~~~~~
+
++-----------------+-------------------------------------------------------+
+| **success**     | the server sent a ``<handshake />``                   |
++-----------------+-------------------------------------------------------+
+| **error**       | the server returned a ``<stream:error>``              |
++-----------------+-------------------------------------------------------+
+
+API
+~~~
+
+.. autoclass:: xmpp.extensions.xep0114.Component
+   :members:
+
+
 Create your own
 ---------------
 

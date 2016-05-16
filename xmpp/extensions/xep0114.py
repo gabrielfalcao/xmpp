@@ -49,6 +49,10 @@ class SuccessHandshake(Node):
 
 
 class Component(Extension):
+    """Provides an `external component
+    <http://www.xmpp.org/extensions/xep-0114.html>`_ API while keeping
+    minimal state based on a single boolean flag.
+    """
     __xep__ = '0114'
 
     def initialize(self):
@@ -65,9 +69,14 @@ class Component(Extension):
             self.on.success.shout(node)
 
     def is_authenticated(self):
+        """:returns: ``True`` if a success handshake was received by the bound
+        XMLStream"""
         return self.__success_handshake is not None
 
     def authenticate(self, secret):
+        """sends a ``<handshake>`` to the server with the encoded version of the given secret
+        :param secret: the secret string to authenticate the component
+        """
         stream_id = self.stream.id
         text = "".join([stream_id, secret])
         secret = hashlib.sha1(text).hexdigest()
@@ -75,6 +84,10 @@ class Component(Extension):
         self.stream.send(handshake)
 
     def create_node(self, to, tls=False):
+        """creates a :py:class:`~xmpp.extensions.xep0114.ComponentStream` with
+        an optional ``<starttls />`` in it.
+        """
+
         node = ComponentStream.create(to=to)
         if tls:
             node.append(StartTLS.create())
