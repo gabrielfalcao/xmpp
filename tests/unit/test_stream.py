@@ -40,7 +40,7 @@ def test_stream_reader_open(context):
     event_handler = EventHandlerMock('on_open')
 
     # And a XMLStream
-    stream = XMLStream(connection)
+    stream = XMLStream(connection, debug=True)
     stream.on.open(event_handler)
 
     # When I feed the reader
@@ -421,3 +421,69 @@ def test_id(logger):
 
     # Then the id is none
     stream.id.should.equal('what')
+
+
+@patch('xmpp.stream.logger')
+def test_parse_ok(logger):
+    ('XMLStream.parse should return a node')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I feed it with valid XML
+    stream.feed(
+        '''<monteque name="Romeo">Loves Juliet</monteque>'''
+    )
+
+    # And call parse
+    result = stream.parse()
+
+    result.should.be.a(Node)
+    result.to_xml().should.look_like('''
+    <monteque name="Romeo">Loves Juliet</monteque>
+    ''')
+
+
+@patch('xmpp.stream.logger')
+def test_parse_failed(logger):
+    ('XMLStream.parse should return None when failed to parse')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I feed it with valid XML
+    stream.feed(
+        '''<monteque name="Romeo">Loves Julietmonteque>'''
+    )
+
+    # And call parse
+    result = stream.parse()
+
+    result.should.be.none
+
+
+@patch('xmpp.stream.logger')
+def test_parse_noxml(logger):
+    ('XMLStream.parse should return None when failed to parse')
+
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+
+    # When I feed it with valid XML
+    stream.feed(
+        '''<monteque name="Romeo" Loves Julietmonteque'''
+    )
+
+    # And call parse
+    result = stream.parse()
+
+    result.should.be.none
