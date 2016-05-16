@@ -16,12 +16,13 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from mock import ANY, patch
+from mock import ANY
 
 from tests.unit.util import EventHandlerMock
 from tests.unit.util import FakeConnection
 
 from xmpp.stream import XMLStream
+from xmpp.models import Stream
 from xmpp.extensions.xep0114 import SuccessHandshake
 
 
@@ -77,7 +78,6 @@ def test_open():
 
     # And a XMLStream
     stream = XMLStream(connection)
-
     component = stream.extension['0114']
 
     # Regular Component
@@ -85,4 +85,23 @@ def test_open():
 
     connection.output.should.equal([
         '<stream:stream to="capulet.com" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams"><starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls" />'
+    ])
+
+
+def test_authenticate():
+    ("xmpp.models.core.Stream.authenticate() should send an <auth> node")
+    # Given a connection
+    connection = FakeConnection()
+
+    # And a XMLStream
+    stream = XMLStream(connection)
+    stream.stream_node = Stream.create(id='foobar')
+
+    component = stream.extension['0114']
+
+    # Regular Component
+    component.authenticate('thesecret')
+
+    connection.output.should.equal([
+        '<handshake>12b52c66db926224809745acfcb361d06ccd4472</handshake>',
     ])
