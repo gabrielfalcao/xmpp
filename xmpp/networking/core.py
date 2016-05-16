@@ -179,7 +179,7 @@ class XMPPConnection(object):
     def send_whitespace_keepalive(self, timeout=3):
         """sends a whitespace keepalive to avoid
         `connection timeouts <https://tools.ietf.org/html/rfc6120#section-4.9.3.4>`_
-        and `dead connections <https://tools.ietf.org/html/rfc6120#section-4.6.1>`_s
+        and `dead connections <https://tools.ietf.org/html/rfc6120#section-4.6.1>`_
 
         **published events**:
 

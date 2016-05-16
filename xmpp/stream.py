@@ -480,12 +480,15 @@ class XMLStream(object):
     def add_contact(self, contact_jid, from_jid=None, groups=None):
         """adds a contact to the roster of the ``bound_jid`` or the provided ``from_jid`` parameter.
 
-        Automatically sends a ``<presence type="subscribe">`` with a
-        subsequent ``<iq type="set">``.
+        `Automatically <https://xmpp.org/rfcs/rfc3921.html#int>`_
+        sends a ``<presence type="subscribe">`` with a subsequent
+        ``<iq type="set">``.
+
 
         :param contact_jid: the jid to add in the roster
         :param from_jid: custom ``from=`` field to designate the owner of the roster
         :param groups: a list of strings with group names to categorize this contact in the roster
+
         """
         from_jid = JID(from_jid or self.bound_jid)
         contact_jid = JID(contact_jid)
