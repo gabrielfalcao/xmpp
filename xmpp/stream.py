@@ -24,6 +24,7 @@ from xmpp.core import ET
 
 from speakers import Speaker as Events
 from xmpp.core import generate_id
+from xmpp.util import stderr
 from xmpp.extensions import get_known_extensions
 from xmpp.models import (
     Node,
@@ -126,13 +127,15 @@ class XMLStream(object):
         self.extension = {}
         self.on = create_stream_events()
         self.on.node(self.route_nodes)
-        # if debug:
-        #     self.on.open(lambda event, data: logger.debug("STREAM OPEN: %s", data))
-        #     self.on.closed(lambda event, data: logger.debug("STREAM CLOSED: %s", data))
-        #     self.on.node(lambda event, node: logger.debug("STREAM NODE: %s", node.to_xml()))
-        # if not debug:
-        #     self.on.unhandled_xml(lambda event, xml: logger.critical("unhandled xml: %s", xml))
-        self.on.unhandled_xml(lambda event, xml: logger.warning("unhandled xml: %s", xml))
+
+        if debug:
+            self.on.error(lambda _, data: stderr.bold_red("error: {0}".format(data)))
+            self.on.closed(lambda _, data: stderr.bold_yellow("XMLStream closed by the server"))
+            self.on.iq_error(lambda _, data: stderr.bold_red("error: {0}".format(data)))
+            self.on.unhandled_xml(lambda _, data: stderr.bold_red("unhandled xml: {0}".format(data)))
+        else:
+            self.on.unhandled_xml(lambda event, xml: logger.warning("unhandled xml: %s", xml))
+
         self.recycle()
 
     @property

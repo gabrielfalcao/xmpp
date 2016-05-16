@@ -24,12 +24,10 @@ The XMPP toolkit provides the
 :py:class:`~xmpp.networking.core.XMPPConnection` that performs all the
 TCP socket management and exposes simple events.
 
+Also you should never write XML manually, instead use a :py:class:`~xmpp.stream.XMLStream` bound to a connection in order to send
 
 code
 ~~~~
-
-Let's open stream by sending a raw XML string, so that you can get a
-feeling of what the stream negotiation looks like.
 
 Notice the ``debug=True`` in the connection creation, that tells the
 lib to print the traffic in the ``stderr``, this can be useful for
@@ -39,36 +37,40 @@ debugging your application.
 .. code:: python
 
     from xmpp import XMPPConnection
+    from xmpp import XMLStream
     from xmpp import JID
 
 
-    user = JID('test@falcao.it/xmpp-toolkit')
+    class Application(object):
 
-    connection = XMPPConnection(user.domain, 5222, debug=True)
+        def __init__(self, jid, password):
+            self.user = JID(jid)
+            self.password = password
+            self.connection = XMPPConnection(self.user.domain, 5222, debug=True)
+            self.stream = XMLStream(self.connection, debug=True)
+
+            self.setup_handlers()
+
+        def setup_handlers(self):
+            self.connection.on.tcp_established(self.do_open_stream)
+            self.connection.on.read(self.do_disconnect)
+
+        def do_open_stream(self, *args, **kw):
+            self.stream.open(self.user.domain)
+
+        def do_disconnect(self, *args, **kw):
+            self.connection.close()
+
+        def run_forever(self):
+            self.connection.connect()
+
+            while self.connection.is_active():
+                self.connection.loop_once()
 
 
-    @connection.on.tcp_established
-    def step1_open_stream(event, host_ip):
-        "sends a <stream:stream> to the XMPP server"
-
-        connection.send('''<stream:stream
-              from='test@falcao.it'
-              to='falcao.it'
-              version='1.0'
-              xml:lang='en'
-              xmlns='jabber:client'
-              xmlns:stream='http://etherx.jabber.org/streams'>
-        ''')
-
-
-    @connection.on.read
-    def step2_show_output(event, host_ip):
-        connection.close()
-
-    connection.connect()
-
-    while connection.is_active():
-        connection.loop_once()
+    if __name__ == '__main__':
+        app = Application('romeo@capulet.com', 'juli3t')
+        app.run_forever()
 
 would output something like this
 

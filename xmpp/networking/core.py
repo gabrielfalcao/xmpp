@@ -15,22 +15,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 # import ssl
 import random
 import socket
 import logging
 import Queue
 import dns.resolver
-import couleur
+
 from speakers import Speaker as Events
 # from xmpp import security
+from xmpp.util import stderr
 from xmpp.networking.util import create_tcp_socket
 from xmpp.networking.util import address_is_ip
 from xmpp.networking.util import socket_ready
 
 logger = logging.getLogger('xmpp.networking')
-stderr = couleur.Shell(sys.stderr, linebreak=True)
 
 DEFAULT_CIPHERS = "HIGH+kEDH:HIGH+kEECDH:HIGH:!PSK:!SRP:!3DES:!aNULL"
 
