@@ -50,8 +50,6 @@ The XMPP Toolkit library allows you to easily implement your own
 If you are implementing a generic XEP, please consider sending a
 pull-request with the change, preferabbly along with its test cases.
 
-Refer to the `documentation <http://xmpp.readthedocs.io/en/latest/extensions.html>`_.
-
 
 Acknowledgements
 ================
