@@ -2,7 +2,7 @@
 #
 # <xmpp - stateless and concurrency-agnostic XMPP library for python>
 #
-# (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2016> Gabriel Falcao <gabriel@nacaolivre.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as

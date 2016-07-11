@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# (C) Copyright 2016 Gabriel Falcao <gabriel@nacaolivre.org>
+# Copyright (C) <2016> Gabriel Falcao <gabriel@nacaolivre.org>
 # (C) Copyright 2003-2011 Jacek Konieczny <jajcus@jajcus.net>
 #
 # This program is free software; you can redistribute it and/or modify
