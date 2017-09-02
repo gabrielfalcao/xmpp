@@ -1,7 +1,8 @@
-speakers==0.0.3
-coloredlogs==5.0
+coloredlogs==7.3
 couleur==0.6.2
-pyasn1==0.1.9
-pyasn1-modules==0.0.8
+dnspython==1.15.0
+pyasn1-modules==0.1.1
+pyasn1==0.3.3
 pycrypto==2.6.1
-dnspython==1.13.0
+rednose==1.2.2
+speakers==0.0.3

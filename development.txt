@@ -1,10 +1,9 @@
 -r requirements.txt
-coverage==4.0.3
-ipdb==0.10.0
+coverage==4.4.1
+ipdb==0.10.3
 mock==2.0.0
 nose==1.3.7
-sure==1.2.24
-nose-randomly==1.2.0
-rednose==1.1.1
-Sphinx==1.4.1
-sphinx-rtd-theme==0.1.9
+sphinx-rtd-theme==0.2.4
+Sphinx==1.6.3
+sure==1.4.6
+twine==1.9.1
