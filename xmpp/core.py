@@ -99,6 +99,7 @@ def generate_id():
 def is_element(element):
     return ET.iselement(element)
 
+
 __all__ = [
     'split_tag_and_namespace',
     'ET',

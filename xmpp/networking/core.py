@@ -48,8 +48,8 @@ def create_connection_events():
         'tls_failed',         # failed to establish a TLS connection
         'tls_start',          # started SSL negotiation
 
-        'write',              # the TCP/TLS connection is ready to send data
-        'read',               # the TCP/TLS connection is ready to receive data
+        'write',              # the TCP/TLS connection has sent data
+        'read',               # the TCP/TLS connection has received data
         'ready_to_write',     # the TCP/TLS connection is ready to send data
         'ready_to_read',      # the TCP/TLS connection is ready to receive data
     ])

@@ -18,3 +18,4 @@ dist/*.gz
 setuptools-*.zip
 build/
 3rdparty-tests
+.tox

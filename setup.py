@@ -50,7 +50,7 @@ def local_file(*f):
     return codecs.open(path, 'r', encoding='utf-8').read().encode('utf-8')
 
 
-dependencies = filter(bool, local_file('requirements.txt').splitlines())
+dependencies = list(filter(bool, local_file('requirements.txt').splitlines()))
 
 
 setup(

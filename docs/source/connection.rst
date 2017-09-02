@@ -31,9 +31,9 @@ Events
 +------------------------+--------------------------------------------------+
 | **tls_start**          | started SSL negotiation                          |
 +------------------------+--------------------------------------------------+
-| **write**              | the TCP/TLS connection is ready to send data     |
+| **write**              | the TCP/TLS connection has sent data             |
 +------------------------+--------------------------------------------------+
-| **read**               | the TCP/TLS connection is ready to receive data  |
+| **read**               | the TCP/TLS connection has received data         |
 +------------------------+--------------------------------------------------+
 | **ready_to_write**     | the TCP/TLS connection is ready to send data     |
 +------------------------+--------------------------------------------------+
