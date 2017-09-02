@@ -1,14 +1,44 @@
 language: python
-sudo: false
+dist: xenial
+sudo: required
+
 python:
   - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+  # - "3.7-dev"
+  # - "pypy"
+  # - "pypy-5.3.1"
 
-env:
-  - TEST_TYPE=unit
-  - TEST_TYPE=functional
+matrix:
+    allow_failures:
+        - python: 3.3
+        - python: 3.4
+        - python: 3.5
+        - python: 3.6
+
+# command to install dependencies
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y bash build-essential ca-certificates cmake curl libffi-dev libxml2-dev libxslt1-dev make pkg-config python-pip python2.7-dev
 
 install:
+  - python setup.py build sdist
   - pip install -r development.txt
+  - pip install -U pip
 
-script:
-  - make $TEST_TYPE
+# command to run tests
+script: make
+
+# automated pypi releases
+deploy:
+  provider: pypi
+  user: gabrielfalcao
+  password:
+    secure: E5KbnpQau7jv/mpHWAs19Y5zBaOHyBXRCGAsTS0S5lEOp/g8EEbjyt5rL7lcIeFAYarIds719BktC5iO+1AQbXOYicS5vDfiVRdLaJ5HPA4v6zyyQzwadFKSqE1Tv11AG9xkFDfBEPLTQmSrpI5cJIY5UoafDnMZe4CbLVETTw8=
+  on:
+    branch: master
+    tags: true
+  distributions: sdist bdist_wheel
