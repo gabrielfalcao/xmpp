@@ -61,13 +61,10 @@ ensure-dependencies:
 
 release: tests docs
 	@./.release
-	@echo "publishing pre-release to testpypi"
-	@python setup.py register -r pypitest
-	@python setup.py sdist upload -r pypitest
-	@printf "\033[1;33mwill publish the official release after yuo hit ENTER now...\033[0m\n"
-	@read
-	@python setup.py register
-	@python setup.py sdist upload
+	@echo "publishing to pypi"
+	@python setup.py build sdist
+	@twine upload dist/*.tar.gz
+
 
 list:
 	@$(executable) list
