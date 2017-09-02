@@ -56,17 +56,18 @@ Acknowledgements
 
 This library was mostly written from scratch, except for the
 ``xmpp.sasl`` which is a modified copy of the contents of the
-[pyxmpp2](https://github.com/Jajcus/pyxmpp2) library by [Jacek
-Konieczny](https://github.com/Jajcus)
+`pyxmpp2 <https://github.com/Jajcus/pyxmpp2>`_ library by `Jacek Konieczny <https://github.com/Jajcus>`_.
 
 The modified files can be found at:
 
-* ``xmpp/sasl/__init__.py``
-* ``xmpp/sasl/core.py``
-* ``xmpp/sasl/digest_md5.py``
-* ``xmpp/sasl/external.py``
-* ``xmpp/sasl/gssapi.py``
-* ``xmpp/sasl/plain.py``
-* ``xmpp/sasl/saslprep.py``
-* ``xmpp/sasl/scram.py``
-* ``xmpp/sasl/xfacebookplatform.py``
+::
+
+    xmpp/sasl/__init__.py
+    xmpp/sasl/core.py
+    xmpp/sasl/digest_md5.py
+    xmpp/sasl/external.py
+    xmpp/sasl/gssapi.py
+    xmpp/sasl/plain.py
+    xmpp/sasl/saslprep.py
+    xmpp/sasl/scram.py
+    xmpp/sasl/xfacebookplatform.py
