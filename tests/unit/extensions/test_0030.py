@@ -46,7 +46,7 @@ def test_disco_query_info():
     # Then the node should be there
     stream.output.should.have.length_of(1)
     stream.output[0].to_xml().should.equal(
-        '<iq to="foo.com" type="get"><query to="foo.com" xmlns="http://jabber.org/protocol/disco#info" /></iq>'
+        b'<iq to="foo.com" type="get"><query to="foo.com" xmlns="http://jabber.org/protocol/disco#info" /></iq>'
     )
 
 
@@ -67,7 +67,7 @@ def test_disco_query_items():
     # Then the node should be there
     stream.output.should.have.length_of(1)
     stream.output[0].to_xml().should.equal(
-        '<iq to="foo.com" type="get"><query to="foo.com" xmlns="http://jabber.org/protocol/disco#items" /></iq>'
+        b'<iq to="foo.com" type="get"><query to="foo.com" xmlns="http://jabber.org/protocol/disco#items" /></iq>'
     )
 
 
@@ -75,28 +75,28 @@ def test_identity_representation():
     ('xep0030.Identity should be representable as string')
 
     node = Identity.create(category='one', type='two', name='three')
-    repr(node).should.equal('one:two:three')
+    repr(node).should.equal("Node(tag=identity, attributes=OrderedDict([('category', 'one'), ('type', 'two'), ('name', 'three'), ('xmlns', 'http://jabber.org/protocol/disco#info')]), namespaces=OrderedDict())")
 
 
 def test_item_jid_representation():
     ('xep0030.Item should be representable as string')
 
     node = Item.create(jid='component.foo.com')
-    repr(node).should.equal('component:jid:component.foo.com')
+    repr(node).should.equal("Node(tag=item, attributes=OrderedDict([('jid', 'component.foo.com'), ('xmlns', 'http://jabber.org/protocol/disco#items')]), namespaces=OrderedDict())")
 
 
 def test_item_representation():
     ('xep0030.Item should be representable as string')
 
     node = Item.create(foo='bar')
-    repr(node).should.equal("item:[('foo', 'bar'), ('xmlns', 'http://jabber.org/protocol/disco#items')]")
+    repr(node).should.equal("Node(tag=item, attributes=OrderedDict([('foo', 'bar'), ('xmlns', 'http://jabber.org/protocol/disco#items')]), namespaces=OrderedDict())")
 
 
 def test_feature_representation():
     ('xep0030.Feature should be representable as string')
 
     node = Feature.create(var='bar')
-    repr(node).should.equal("feature:bar")
+    repr(node).should.equal("Node(tag=feature, attributes=OrderedDict([('var', 'bar'), ('xmlns', 'http://jabber.org/protocol/disco#info')]), namespaces=OrderedDict())")
 
 
 def test_disco_events():
@@ -125,5 +125,6 @@ def test_disco_events():
     stream.on.node.shout(query_items)
 
     # Then the handler should have been called appropriately
+
     handle_query_items.assert_called_once_with(ANY, query_items)
     handle_query_info.assert_called_once_with(ANY, query_info)

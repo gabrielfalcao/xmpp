@@ -29,4 +29,5 @@ if [ $sure == "yes" ]; then
     printf "\033[0m\n"
     git add `find_files`
     git commit -am "New release: $newversion"
+    git tag "${newversion}"
 fi;

@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
+from six import string_types
 from xmpp.core import ET
 from xmpp.core import node_to_string
 from xmpp.core import split_tag_and_namespace
@@ -137,7 +138,7 @@ class Node(object):
         params.update(kw)
 
         element = ET.Element(tag, **params)
-        if isinstance(_stringcontent, basestring):
+        if isinstance(_stringcontent, string_types):
             element.text = _stringcontent
 
         return Node.from_element(element, allow_fixedup=True)

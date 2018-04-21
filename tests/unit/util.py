@@ -21,6 +21,7 @@ import re
 from sure import scenario
 from speakers import Speaker as Events
 from mock import MagicMock
+from mock import Mock
 from xmpp.models.core import JID
 from xmpp.stream import create_stream_events
 from xmpp.networking.core import create_connection_events
@@ -32,8 +33,11 @@ def XML(string):
 
 def EventHandlerMock(name):
     handler = MagicMock(name=name, __name__=name)
+    handler.__code__ = Mock(name='func_code({})'.format(name))
     handler.func_code.co_firstlineno = 1
     handler.func_code.co_filename = name
+    handler.__code__.co_firstlineno = 1
+    handler.__code__.co_filename = name
     handler.return_value = True
     return handler
 

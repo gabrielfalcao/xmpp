@@ -27,7 +27,7 @@ from xmpp.models.core import Stream
 from xmpp.models.core import ResourceBind
 from xmpp.models.core import MissingJID
 from xmpp.models.core import ServiceUnavailable
-from util import EventHandlerMock, event_test, FakeConnection
+from .util import EventHandlerMock, event_test, FakeConnection
 
 
 @event_test

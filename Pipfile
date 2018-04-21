@@ -1,0 +1,36 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[packages]
+
+coloredlogs = "==7.3"
+couleur = "==0.6.2"
+dnspython = "==1.15.0"
+"pyasn1-modules" = "==0.1.1"
+"pyasn1" = "==0.3.3"
+pycrypto = "*"
+rednose = "==1.2.2"
+speakers = "*"
+
+
+[dev-packages]
+
+coverage = "*"
+ipdb = "*"
+mock = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+sure = "*"
+tox = "*"
+twine = "*"
+nose = "*"
+rednose = "*"
+
+
+[requires]
+
+python_version = "3.6"

@@ -35,7 +35,7 @@ clean:
 	git clean -Xdf
 
 unit:
-	nosetests --with-coverage --cover-erase \
+	pipenv run nosetests --with-coverage --cover-erase \
 	    --cover-package=xmpp.core \
 	    --cover-package=xmpp.networking \
 	    --cover-package=xmpp.stream \
@@ -44,7 +44,7 @@ unit:
 	    --verbosity=2 -s --rednose tests/unit
 
 functional:
-	nosetests -x --with-randomly --with-coverage --cover-erase \
+	pipenv run nosetests -x --with-coverage --cover-erase \
 	    --cover-package=xmpp \
 	    --verbosity=2 -s --rednose --logging-clear-handlers \
 	    tests/functional
@@ -57,13 +57,13 @@ fake-devices:
 	for x in `seq 10`; do printf "HMSET device.`uuidgen | sed s,-,,g | awk '{print tolower($0)}'`.notification_window window 300 last_updated `date +%s`" | redis-cli; done
 
 ensure-dependencies:
-	@pip install -r development.txt
+	@pipenv install --dev
 
 release: tests docs
 	@./.release
 	@echo "publishing to pypi"
-	@python setup.py build sdist
-	@twine upload dist/*.tar.gz
+	@pipenv run python setup.py build sdist
+	@pipenv run twine upload dist/*.tar.gz
 
 
 list:
@@ -81,11 +81,11 @@ component-presence-proxy:
 	python examples/component-presence-proxy.py
 
 echobot:
-	python examples/echobot.py
+	pipenv run python examples/echobot.py
 
 service-discovery:
-	python examples/service_discovery.py
+	pipenv run python examples/service_discovery.py
 
 
 presence-auto-subscriber:
-	python examples/presence-auto-subscriber.py
+	pipenv run python examples/presence-auto-subscriber.py

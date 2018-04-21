@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from six import string_types
 
 from xmpp.core import ET
 from xmpp.models.node import Node
@@ -28,7 +29,7 @@ class JID(object):
         self.data = data
         self.parts = {}
 
-        if isinstance(data, basestring):
+        if isinstance(data, string_types):
             found = self.regex.search(data)
             if found:
                 self.parts = found.groupdict()

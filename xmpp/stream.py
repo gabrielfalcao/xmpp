@@ -20,6 +20,7 @@
 import re
 import uuid
 import logging
+from six import PY3
 from xmpp.core import ET
 
 from speakers import Speaker as Events
@@ -74,6 +75,13 @@ class STREAM_STATES(object):
 
 
 xml_cleanup_regex1 = re.compile(r'^[<][?]xml[^?]+[^>]+[>]')
+
+
+def xml_tree_builder(target):
+    if PY3:
+        return ET.XMLParser(target=target)
+
+    return ET.XMLTreeBuilder(target=target)
 
 
 def sanitize_feed(data):
@@ -348,7 +356,7 @@ class XMLStream(object):
 
     def make_parser(self):
         self.target = NodeHandler(self)
-        return ET.XMLTreeBuilder(target=self.target)
+        return xml_tree_builder(self.target)
 
     def matches_closed_stream(self, string):
         return string.rstrip().endswith('</stream:stream>')

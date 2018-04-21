@@ -19,7 +19,11 @@
 import random
 import socket
 import logging
-import Queue
+try:
+    import queue as Queue
+except ImportError:
+    import Queue
+
 import dns.resolver
 
 from speakers import Speaker as Events

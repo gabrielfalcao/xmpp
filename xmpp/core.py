@@ -23,7 +23,7 @@ from __future__ import unicode_literals
 import re
 import uuid
 import xml.etree.ElementTree as ET
-
+from six import PY3
 from collections import OrderedDict
 from xmpp._registry import _NODE_MAPPING
 
@@ -85,8 +85,16 @@ def fixup_element(original_elem, uri_map=None):
     return original_elem
 
 
+def copy_element(element):
+    if PY3:
+        e = element.makeelement(element.tag, element.attrib)
+        return list(element.iter())[0]
+
+    return element.copy()
+
+
 def node_to_string(node):
-    element = node._element.copy()
+    element = copy_element(node._element)
     fixup_element(element)
     output = ET.tostring(element, 'utf-8')
     return output
