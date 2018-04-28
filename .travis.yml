@@ -1,38 +1,20 @@
 language: python
-dist: xenial
-sudo: required
-
+sudo: false
 python:
   - "2.7"
-  # - "3.3"
-  # - "3.4"
-  # - "3.5"
-  # - "3.6"
-  # - "3.7-dev"
-  # - "pypy"
-  # - "pypy-5.3.1"
-
-matrix:
-    allow_failures:
-        - python: 3.3
-        - python: 3.4
-        - python: 3.5
-        - python: 3.6
-
-# command to install dependencies
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y bash build-essential ca-certificates cmake curl libffi-dev libxml2-dev libxslt1-dev make pkg-config python-pip python2.7-dev
+  - "3.6"
 
 install:
-  - python setup.py build sdist
-  - pip install -r development.txt
-  - pip install -U pip
+  - pip install pipenv
 
-# command to run tests
-script: make continuous-integration
+script:
+  - pipenv install --dev --skip-lock
+  - make unit functional
 
-# automated pypi releases
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+
 deploy:
   provider: pypi
   user: gabrielfalcao
