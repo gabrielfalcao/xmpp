@@ -14,40 +14,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-import ast
+import io
 import os
-import codecs
 from setuptools import setup, find_packages
 
 
-local_file = lambda *f: \
-    open(os.path.join(os.path.dirname(__file__), *f)).read()
-
-
-class VersionFinder(ast.NodeVisitor):
-    VARIABLE_NAME = 'version'
-
-    def __init__(self):
-        self.version = None
-
-    def visit_Assign(self, node):
-        try:
-            if node.targets[0].id == self.VARIABLE_NAME:
-                self.version = node.value.s
-        except:
-            pass
-
-
 def read_version():
-    finder = VersionFinder()
-    finder.visit(ast.parse(local_file('xmpp', 'version.py')))
-    return finder.version
+    ctx = {}
+    exec(local_file('xmpp', 'version.py'), ctx)
+    return ctx['version']
 
 
-def local_file(*f):
-    path = os.path.join(os.path.dirname(__file__), *f)
-    return codecs.open(path, 'r', encoding='utf-8').read().encode('utf-8')
+local_file = lambda *f: \
+    io.open(os.path.join(os.path.dirname(__file__), *f), encoding='utf-8').read()
 
 
 dependencies = list(filter(bool, local_file('requirements.txt').splitlines()))
@@ -84,6 +63,10 @@ setup(
         'Topic :: Communications :: Conferencing',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: System :: Networking',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
     ],
     zip_safe=False,
 )

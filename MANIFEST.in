@@ -1,1 +1,3 @@
 include COPYING requirements.txt *.rst docs/source/*
+recursive-include docs/source *.*
+recursive-include docs/source/_static *.*

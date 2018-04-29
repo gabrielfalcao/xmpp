@@ -16,6 +16,10 @@ block for non-blocking XMPP clients, components, gateways and servers.
    :alt: Documentation Status
 .. image:: https://travis-ci.org/gabrielfalcao/xmpp.svg?branch=master
    :target: https://travis-ci.org/gabrielfalcao/xmpp
+.. image:: https://img.shields.io/pypi/pyversions/xmpp.svg
+   :target: https://pypi.python.org/pypi/xmpp
+.. image:: https://badges.gitter.im/gabrielfalcao/xmpp.svg
+   :target: https://gitter.im/gabrielfalcao/xmpp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Documentation
 =============
