@@ -15,8 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import socket
-import Queue
-
+from xmpp.compat import Queue
 from mock import patch, ANY, Mock
 from xmpp.networking.core import XMPPConnection
 from tests.unit.util import EventHandlerMock
@@ -57,7 +56,7 @@ def test_reconnect(context, create_tcp_socket):
     conn.on.tcp_failed(tcp_failed)
     conn.reconnect()
 
-    socket.connect.assert_called_once_with(('host', 5222))
+    socket.connect.assert_called_once_with((b'host', 5222))
 
     tcp_restablished.assert_called_once_with(ANY, 'host:5222')
 
@@ -78,7 +77,7 @@ def test_reconnect_failed(context, create_tcp_socket):
     conn.on.tcp_failed(tcp_failed)
     conn.reconnect()
 
-    socket.connect.assert_called_once_with(('host', 5222))
+    socket.connect.assert_called_once_with((b'host', 5222))
 
     tcp_failed.assert_called_once_with(ANY, error)
 
@@ -131,7 +130,7 @@ def test_connect_failed_dns(context, resolver, create_tcp_socket):
 
     conn.connect()
 
-    tcp_failed.assert_called_once_with(ANY, "failed to resolve: capulet.com")
+    tcp_failed.assert_called_once_with(ANY, "error trying to resolve capulet.com: boom")
 
 
 @event_test
@@ -167,7 +166,7 @@ def test_connect_error(context, resolver, create_tcp_socket):
 
     conn.connect()
 
-    tcp_failed.assert_called_once_with(ANY, "boom")
+    tcp_failed.assert_called_once_with(ANY, "error trying to resolve capulet.com: Cannot choose from an empty sequence")
 
 
 @event_test

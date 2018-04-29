@@ -40,6 +40,13 @@ class QueryItems(Node):
     __children_of__ = IQ
 
 
+def colonize_kv(kv):
+    k, v = kv
+    # if k == 'xmlns':
+    #     return None
+    return ':'.join((k, v))
+
+
 class Item(Node):
     __tag__ = 'item'
     __etag__ = '{http://jabber.org/protocol/disco#items}item'
@@ -53,7 +60,7 @@ class Item(Node):
         if 'jid' in self.attr:
             return 'component:jid:{jid}'.format(**self.attr)
 
-        return 'item:{0}'.format(list(self.attr.items()))
+        return 'item:{0}'.format(":".join(filter(bool, map(colonize_kv, self.attr.items()))))
 
     def __repr__(self):
         return self.to_string()

@@ -15,7 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from xmpp.sasl.core import Success, Failure, Challenge, Response
+from xmpp.sasl.core import Success
+from xmpp.sasl.core import Failure
+from xmpp.sasl.core import Challenge
+from xmpp.sasl.core import Response
 from xmpp.sasl.plain import PlainClientAuthenticator
 
 
@@ -33,7 +36,7 @@ def test_start_plain_client_authenticator_start():
 
     # Then it should return the initial challenge as a xmpp.sasl.Response
     response.should.be.a(Response)
-    response.data.should.equal('\x00romeo\x00jul137my10v3')
+    response.data.should.equal(b'\x00romeo\x00jul137my10v3')
     response.encode().should.equal('AHJvbWVvAGp1bDEzN215MTB2Mw==')
 
     # And challenging manually will fail

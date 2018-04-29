@@ -16,11 +16,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+import codecs
+from xmpp.core import cast_bytes
 from xmpp.models import SASLAuth
 from xmpp.models import SASLChallenge
 from xmpp.models import SASLResponse
 from xmpp.models import SASLSuccess
+
+
+def b64(s):
+    return codecs.encode(
+        cast_bytes(s), 'base64')
 
 
 def test_auth_prepare():
@@ -36,7 +42,7 @@ def test_challenge_decoded():
     ("SASLChallenge.decoded should return the base64 "
      "decoded version of the challenge")
 
-    node = SASLChallenge.create('something'.encode('base64'))
+    node = SASLChallenge.create(b64('something'))
     node.decoded.should.equal('something')
 
 
@@ -44,7 +50,7 @@ def test_success_decoded():
     ("SASLSuccess.decoded should return the base64 "
      "decoded version of the success")
 
-    node = SASLSuccess.create('something'.encode('base64'))
+    node = SASLSuccess.create(b64('something'))
     node.decoded.should.equal('something')
 
 

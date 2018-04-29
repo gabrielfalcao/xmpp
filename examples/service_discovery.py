@@ -102,7 +102,7 @@ def application():
     @connection.on.ready_to_write
     def keep_alive(event, connection):
         if stream.has_gone_through_sasl() and (time.time() % 60 == 0):
-            print 'keepalive'
+            print('keepalive')
             connection.send_whitespace_keepalive()
 
     @service_discovery.on.query_items
@@ -120,8 +120,7 @@ def application():
             connection.loop_once()
 
     except KeyboardInterrupt as e:
-        print "\r{0}".format(traceback.format_exc(e))
-
+        print("\r{0}".format(traceback.format_exc(e)))
         raise SystemExit(1)
 
 if __name__ == '__main__':

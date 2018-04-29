@@ -26,13 +26,13 @@ from xmpp.sasl import PasswordDatabase
 def test_get_client_mechanisms():
     "xmpp.sasl.get_client_mechanisms() should return a list of supported mechanisms"
 
-    get_client_mechanisms().should.equal(['PLAIN', 'SCRAM-SHA-1-PLUS', 'EXTERNAL', 'SCRAM-SHA-1'])
+    get_client_mechanisms().should.equal(['EXTERNAL', 'PLAIN', 'SCRAM-SHA-1', 'SCRAM-SHA-1-PLUS'])
 
 
 def test_get_server_mechanisms():
     "xmpp.sasl.get_server_mechanisms() should return a list of supported mechanisms"
 
-    get_server_mechanisms().should.equal(['PLAIN', 'SCRAM-SHA-1-PLUS', 'SCRAM-SHA-1'])
+    get_server_mechanisms().should.equal(['PLAIN', 'SCRAM-SHA-1', 'SCRAM-SHA-1-PLUS'])
 
 
 def test_server_authenticator_factory():

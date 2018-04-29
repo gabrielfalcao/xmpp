@@ -14,11 +14,16 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+from __future__ import unicode_literals
 
 import re
-from six import string_types
 
 from xmpp.core import ET
+from xmpp.core import cast_string
+from xmpp.compat import string_types
+
+# from xmpp.core import encode_b64
+from xmpp.core import decode_b64
 from xmpp.models.node import Node
 
 
@@ -122,7 +127,7 @@ class Stream(Node):
         data = {}
         for feature in features_node.get_children():
             name = feature.attr['xmlns']
-            value = filter(bool, [x.value for x in feature.get_children()])
+            value = list(filter(bool, [x.value for x in feature.get_children()]))
             data[name] = value
 
         return data
@@ -260,7 +265,7 @@ class Message(Node):
         for item in self.query('body'):
             data.append(item.value)
 
-        return u'\n'.join(map(unicode, data))
+        return '\n'.join(map(cast_string, data))
 
     def add_text(self, text):
         body = self.get('body')
@@ -411,7 +416,7 @@ class SASLAuth(Node):
     @staticmethod
     def prepare(mechanism, message):
         node = SASLAuth.create(mechanism=mechanism)
-        node.value = bytes(message)
+        node.value = cast_string(message)
         return node
 
 
@@ -445,7 +450,7 @@ class SASLChallenge(Node):
     ]
 
     def get_data(self):
-        return self.value.decode('base64')
+        return decode_b64(self.value)
 
     @property
     def decoded(self):
@@ -517,7 +522,7 @@ class SASLSuccess(Node):
     ]
 
     def get_data(self):
-        return self.value.decode('base64')
+        return decode_b64(self.value)
 
     @property
     def decoded(self):

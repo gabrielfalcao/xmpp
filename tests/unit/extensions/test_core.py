@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from mock import patch
+from mock import patch  # noqa
 from xmpp.extensions.core import Extension
 from xmpp.extensions.core import ExtensionDefinitionError
 from xmpp.extensions.core import get_known_extensions
@@ -25,7 +25,7 @@ from xmpp.extensions.core import get_known_extensions
 def test_get_known_extensions():
     ('xmpp.extensions.get_known_extensions() returns all known extensions')
 
-    map(lambda (x, y): (x, y.__name__), get_known_extensions()).should.equal([
+    list(map(lambda xy: (xy[0], xy[1].__name__), get_known_extensions())).should.equal([
         ('0030', 'ServiceDiscovery'),
         ('0114', 'Component'),
     ])

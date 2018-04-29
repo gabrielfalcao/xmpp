@@ -6,3 +6,4 @@ pyasn1==0.3.3
 pycrypto==2.6.1
 rednose==1.2.2
 speakers==0.0.3
+blinker==1.4

@@ -32,12 +32,14 @@ def XML(string):
 
 
 def EventHandlerMock(name):
+    filename = "{}.py".format(name)
     handler = MagicMock(name=name, __name__=name)
-    handler.__code__ = Mock(name='func_code({})'.format(name))
+    handler.func_code = Mock(name='func_code({})'.format(name))
+    handler.__code__ = Mock(name='__code__({})'.format(name))
     handler.func_code.co_firstlineno = 1
-    handler.func_code.co_filename = name
+    handler.func_code.co_filename = filename
     handler.__code__.co_firstlineno = 1
-    handler.__code__.co_filename = name
+    handler.__code__.co_filename = filename
     handler.return_value = True
     return handler
 
@@ -52,6 +54,7 @@ def nodes_from_call(handler):
 
 def clear_events(context):
     Events.release_all()
+
 
 event_test = scenario(clear_events, clear_events)
 

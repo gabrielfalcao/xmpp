@@ -28,7 +28,8 @@ import dns.resolver
 
 from speakers import Speaker as Events
 # from xmpp import security
-from xmpp.util import stderr
+from xmpp.core import cast_bytes
+from xmpp.core import cast_string
 from xmpp.networking.util import create_tcp_socket
 from xmpp.networking.util import address_is_ip
 from xmpp.networking.util import socket_ready
@@ -76,7 +77,7 @@ class XMPPConnection(object):
                  queue_class=Queue.Queue, hwm_in=256, hwm_out=256, recv_chunk_size=65536):
         self.socket = None
         self.tls_context = None
-        self.host = bytes(host)
+        self.host = cast_bytes(host)
         self.port = int(port)
         self.read_queue = queue_class(hwm_in)
         self.write_queue = queue_class(hwm_out)
@@ -84,20 +85,20 @@ class XMPPConnection(object):
         self.__alive = False
         self.on = create_connection_events()
         if debug:
-            self.on.tcp_established(lambda event, data: stderr.bold_green("TCP ESTABLISHED: {0}".format(data)))
-            self.on.tcp_restablished(lambda event, data: stderr.bold_blue("TCP RESTABLISHED: {0}".format(data)))
-            self.on.tcp_downgraded(lambda event, data: stderr.bold_cyan("TCP DOWNGRADED: {0}".format(data)))
-            self.on.tcp_disconnect(lambda event, data: stderr.bold_red("TCP DISCONNECT: {0}".format(data)))
-            self.on.tcp_failed(lambda event, data: stderr.red("TCP FAILED: {0}".format(data)))
+            self.on.tcp_established(lambda event, data: logger.debug("TCP ESTABLISHED: {0}".format(data)))
+            self.on.tcp_restablished(lambda event, data: logger.debug("TCP RESTABLISHED: {0}".format(data)))
+            self.on.tcp_downgraded(lambda event, data: logger.debug("TCP DOWNGRADED: {0}".format(data)))
+            self.on.tcp_disconnect(lambda event, data: logger.debug("TCP DISCONNECT: {0}".format(data)))
+            self.on.tcp_failed(lambda event, data: logger.debug("TCP FAILED: {0}".format(data)))
 
-            self.on.tls_established(lambda event, pem_cert: stderr.green("SSL ESTABLISHED: {0}".format(pem_cert)))
-            self.on.tls_failed(lambda event, error: stderr.red("SSL FAILED: {0}".format(error)))
-            self.on.tls_invalid_chain(lambda event, error: stderr.red("SSL INVALID CHAIN: {0}".format(error)))
-            self.on.tls_invalid_cert(lambda event, error: stderr.red("SSL INVALID CERT: {0}".format(error)))
-            self.on.tls_start(lambda event, tls: stderr.bold_magenta("SSL NEGOTIATION STARTED: {0}".format(tls)))
+            self.on.tls_established(lambda event, pem_cert: logger.debug("SSL ESTABLISHED: {0}".format(pem_cert)))
+            self.on.tls_failed(lambda event, error: logger.debug("SSL FAILED: {0}".format(error)))
+            self.on.tls_invalid_chain(lambda event, error: logger.debug("SSL INVALID CHAIN: {0}".format(error)))
+            self.on.tls_invalid_cert(lambda event, error: logger.debug("SSL INVALID CERT: {0}".format(error)))
+            self.on.tls_start(lambda event, tls: logger.debug("SSL NEGOTIATION STARTED: {0}".format(tls)))
 
-            self.on.read(lambda event, data: stderr.yellow("XMPP RECV: {0}".format(data)))
-            self.on.write(lambda event, data: stderr.blue("XMPP SEND: {0}".format(data)))
+            self.on.read(lambda event, data: logger.debug("XMPP RECV: {0}".format(data)))
+            self.on.write(lambda event, data: logger.debug("XMPP SEND: {0}".format(data)))
 
         if auto_reconnect:
             self.on.tcp_disconnect(lambda event, data: self.reconnect())
@@ -115,7 +116,7 @@ class XMPPConnection(object):
         self.socket = create_tcp_socket(keep_alive_seconds=3, max_fails=5)
         try:
             self.socket.connect((self.host, self.port))
-            self.on.tcp_restablished.shout(":".join(map(bytes, [self.host, self.port])))
+            self.on.tcp_restablished.shout(":".join(map(cast_string, [self.host, self.port])))
             self.__alive = True
         except Exception as e:
             self.__alive = False
@@ -145,7 +146,7 @@ class XMPPConnection(object):
 
         try:
             self.socket.close()
-        except:
+        except (Exception, BaseException):
             logger.exception("failed to close")
 
         self.__alive = False
@@ -166,8 +167,8 @@ class XMPPConnection(object):
         if not address_is_ip(self.host):
             try:
                 self.resolve_dns()
-            except dns.resolver.NoAnswer as e:
-                self.on.tcp_failed.shout('failed to resolve: {0}'.format(self.host))
+            except (Exception, BaseException) as e:
+                self.on.tcp_failed.shout('error trying to resolve {0}: {1}'.format(cast_string(self.host), e))
                 return
 
         self.socket = create_tcp_socket(keep_alive_seconds=3, max_fails=5)

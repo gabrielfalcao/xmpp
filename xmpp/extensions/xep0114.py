@@ -19,6 +19,7 @@
 
 import hashlib
 from speakers import Speaker as Events
+from xmpp.core import cast_bytes
 from xmpp.models import Node, StartTLS, Stream
 from xmpp.extensions import Extension
 
@@ -79,7 +80,7 @@ class Component(Extension):
         """
         stream_id = self.stream.id
         text = "".join([stream_id, secret])
-        secret = hashlib.sha1(text).hexdigest()
+        secret = hashlib.sha1(cast_bytes(text)).hexdigest()
         handshake = SecretHandshake.create(secret)
         self.stream.send(handshake)
 

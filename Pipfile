@@ -30,6 +30,7 @@ tox = "*"
 twine = "*"
 nose = "*"
 rednose = "*"
+"flake8" = "*"
 
 
 [requires]

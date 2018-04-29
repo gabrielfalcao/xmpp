@@ -16,8 +16,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from collections import OrderedDict
-from six import string_types
+from six import with_metaclass
+
 from xmpp.core import ET
+from xmpp.core import cast_string
 from xmpp.core import node_to_string
 from xmpp.core import split_tag_and_namespace
 from xmpp.core import fixup_element
@@ -58,7 +60,8 @@ class MetaNode(type):
         super(MetaNode, NodeClass).__init__(name, bases, members)
 
 
-class Node(object):
+class Node(with_metaclass(MetaNode, object)):
+
     """Base class for all XML node definitions.
 
     The xmpp library only supports XML tags that are explicitly
@@ -70,8 +73,6 @@ class Node(object):
     __prefixes__ = None
     __single__ = False
     __children_of__ = None
-
-    __metaclass__ = MetaNode
 
     def __init__(self, element, closed=False):
         # self._original = element.copy()
@@ -121,7 +122,7 @@ class Node(object):
         """creates a node instance
 
         :param _stringcontent: the content text of the tag, if any
-        :param **kw: keyword arguments that will become tag attributes
+        :param kw: keyword-arguments that will become tag attributes
         """
         params = OrderedDict()
         if not cls.__etag__:
@@ -138,8 +139,7 @@ class Node(object):
         params.update(kw)
 
         element = ET.Element(tag, **params)
-        if isinstance(_stringcontent, string_types):
-            element.text = _stringcontent
+        element.text = cast_string(_stringcontent or '')
 
         return Node.from_element(element, allow_fixedup=True)
 
@@ -197,10 +197,8 @@ class Node(object):
         return Node.from_element(node)
 
     def add_text(self, text):
-        if not self._element.text:
-            self._element.text = b''
-
-        self._element.text += bytes(text)
+        parts = filter(bool, (self._element.text, text))
+        self._element.text = "".join(parts)
 
     def append(self, node):
         if self.is_closed:

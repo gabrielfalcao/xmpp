@@ -22,10 +22,40 @@ from __future__ import unicode_literals
 
 import re
 import uuid
+import codecs
 import xml.etree.ElementTree as ET
-from six import PY3
 from collections import OrderedDict
+
+from xmpp.compat import text_type
+from xmpp.compat import binary_type
+
 from xmpp._registry import _NODE_MAPPING
+
+
+def encode_b64(s):
+    return cast_string(codecs.encode(cast_bytes(s), 'base64'))
+
+
+def decode_b64(s):
+    return cast_string(codecs.decode(cast_bytes(s), 'base64'))
+
+
+def cast_bytes(s, encoding='utf-8'):
+    if isinstance(s, binary_type):
+        return s
+    elif isinstance(s, text_type):
+        return s.encode(encoding)
+
+    return cast_bytes(text_type(s))
+
+
+def cast_string(s, encoding='utf-8'):
+    if isinstance(s, text_type):
+        return s
+    elif isinstance(s, binary_type):
+        return s.decode(encoding)
+
+    return text_type(s)
 
 
 def split_tag_and_namespace(attribute):
@@ -75,9 +105,9 @@ def fixup_element(original_elem, uri_map=None):
     for prefix, uri in OrderedDict(node.__namespaces__).items():
         uri_map[uri] = prefix
         if prefix:
-            elem.set(b":".join([b'xmlns', bytes(prefix)]), uri)
+            elem.set(":".join(['xmlns', text_type(prefix)]), uri)
         else:
-            elem.set(b"xmlns", bytes(uri))
+            elem.set("xmlns", text_type(uri))
 
     for elem in elem.getiterator():
         fixup_element(elem, uri_map)
@@ -85,23 +115,27 @@ def fixup_element(original_elem, uri_map=None):
     return original_elem
 
 
-def copy_element(element):
-    if PY3:
-        e = element.makeelement(element.tag, element.attrib)
-        return list(element.iter())[0]
-
-    return element.copy()
+def copy_element(element, encoding='utf-8'):
+    return element
 
 
-def node_to_string(node):
-    element = copy_element(node._element)
+def raw_element_to_string(element, encoding='utf-8'):
+    return ET.tostring(element, encoding)
+
+
+def element_to_string(element, encoding='utf-8'):
     fixup_element(element)
-    output = ET.tostring(element, 'utf-8')
-    return output
+    return raw_element_to_string(element, encoding)
+
+
+def node_to_string(node, encoding='utf-8'):
+    element = copy_element(node._element)
+    output = element_to_string(element, encoding)
+    return cast_string(output, encoding)
 
 
 def generate_id():
-    return bytes(uuid.uuid4())
+    return cast_bytes(uuid.uuid4())
 
 
 def is_element(element):

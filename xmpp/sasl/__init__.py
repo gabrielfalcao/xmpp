@@ -64,11 +64,11 @@ logger = logging.getLogger("xmpp.sasl")
 
 
 def get_client_mechanisms():
-    return CLIENT_MECHANISMS_D.keys()
+    return sorted(CLIENT_MECHANISMS_D.keys())
 
 
 def get_server_mechanisms():
-    return SERVER_MECHANISMS_D.keys()
+    return sorted(SERVER_MECHANISMS_D.keys())
 
 
 def client_authenticator_factory(mechanism):

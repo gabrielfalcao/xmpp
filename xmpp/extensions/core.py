@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from six import with_metaclass
 from xmpp._registry import _EXTENSION_MAPPING
 
 
@@ -41,9 +42,7 @@ class ExtensionDefinitionError(Exception):
     pass
 
 
-class Extension(object):
-    __metaclass__ = MetaExtension
-
+class Extension(with_metaclass(MetaExtension, object)):
     def __init__(self, stream):
         self.stream = stream
         self.initialize()

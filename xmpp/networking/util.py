@@ -21,6 +21,7 @@ import socket
 import select
 from collections import namedtuple
 
+from xmpp.core import cast_string
 IP_REGEX = re.compile(r'^(\d{1,3}[.]){3}\d{1,3}$')
 
 SocketStatePair = namedtuple('SocketStatePair', ['read', 'write'])
@@ -37,7 +38,7 @@ def create_tcp_socket(keep_alive_seconds=3, max_fails=5):
 
 
 def address_is_ip(address):
-    return IP_REGEX.search(address) is not None
+    return IP_REGEX.search(cast_string(address)) is not None
 
 
 def set_keepalive(*args, **kw):

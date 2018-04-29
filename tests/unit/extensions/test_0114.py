@@ -60,12 +60,14 @@ def test_create_component():
     component = stream.extension['0114']
 
     # Regular Component
-    component.create_node('capulet.com').to_xml().should.look_like(
+    insecure_xml = component.create_node('capulet.com').to_xml()
+    insecure_xml.should.equal(
         '<stream:stream to="capulet.com" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">'
     )
 
     # TLS Component
-    component.create_node('capulet.com', tls=True).to_xml().should.look_like(
+    tls_xml = component.create_node('capulet.com', tls=True).to_xml()
+    tls_xml.should.look_like(
         '<stream:stream to="capulet.com" xmlns="jabber:component:accept" xmlns:stream="http://etherx.jabber.org/streams">'
         '<starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls" />'
     )

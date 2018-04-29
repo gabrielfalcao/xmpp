@@ -43,7 +43,7 @@ def test_jid_from_string():
 
     # It has the text representation
     item.text.should.equal('user@domain.com/resource')
-    repr(item).should.equal("JID({'bare': 'user@domain.com', 'nick': 'user', 'domain': 'domain.com', 'full': 'user@domain.com/resource', 'resource': 'resource'})")
+    repr(item).should.equal("JID({'full': 'user@domain.com/resource', 'bare': 'user@domain.com', 'nick': 'user', 'domain': 'domain.com', 'resource': 'resource'})")
     str(item).should.equal('user@domain.com/resource')
 
     # It has the muc representation
@@ -90,7 +90,7 @@ def test_jid_from_jid():
 
     # It has the text representation
     item.text.should.equal('user@domain.com/resource')
-    repr(item).should.equal("JID({'bare': 'user@domain.com', 'nick': 'user', 'domain': 'domain.com', 'full': 'user@domain.com/resource', 'resource': 'resource'})")
+    repr(item).should.equal("JID({'full': 'user@domain.com/resource', 'bare': 'user@domain.com', 'nick': 'user', 'domain': 'domain.com', 'resource': 'resource'})")
     str(item).should.equal('user@domain.com/resource')
 
 

@@ -20,16 +20,8 @@ tests: unit
 
 # http://misc.flogisoft.com/bash/tip_colors_and_formatting
 
-lint:check-build
-	@printf "\033[1;33mChecking for static errors...\033[0m"
-	@find xmpp -name '*.py' | grep -v node | xargs flake8 --ignore=E501
-	@printf "\r\033[1;37mChecking for static errors... \033[1;32mOK\033[0m\n"
-
-check-build:
-	@printf "\033[1;33mChecking if the build is working\033[0m..."
-	@((python setup.py build 2>&1)2>&1>build.log) || (printf "\033[1;31mFAILED\r\n\n\033[0m\r" && cat build.log && echo "" && exit 1)
-	@printf "\r\033[1;37mChecking if the build is working... \033[1;32mOK\033[0m\n"
-	@rm -rf build*
+lint:
+	@flake8 xmpp
 
 clean:
 	git clean -Xdf

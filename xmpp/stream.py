@@ -20,7 +20,8 @@
 import re
 import uuid
 import logging
-from six import PY3
+from xmpp.compat import PY3
+from xmpp.compat import string_types
 from xmpp.core import ET
 
 from speakers import Speaker as Events
@@ -480,7 +481,7 @@ class XMLStream(object):
             presence.append(PresenceDelay.create(**delay_params))
 
         if priority:
-            node = PresencePriority.create(bytes(priority))
+            node = PresencePriority.create(str(priority))
             presence.append(node)
 
         self.send(presence)
@@ -489,7 +490,7 @@ class XMLStream(object):
         """
         :param message: the string with the message
         :param to: the jid to send the message to
-        :param **params: keyword args for designating attributes of the message
+        :param params: keyword-args for designating attributes of the message
         """
         self.send(Message.create(message, to=to, **params))
 
@@ -514,7 +515,7 @@ class XMLStream(object):
             jid=contact_jid.full,
             name=contact_jid.nick.title()
         )
-        if isinstance(groups, basestring):
+        if isinstance(groups, string_types):
             groups = [groups]
         elif not isinstance(groups, list):
             groups = []

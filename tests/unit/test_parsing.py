@@ -28,7 +28,7 @@ from xmpp.models import (
     InvalidNamespace
 )
 
-from util import XML, EventHandlerMock, nodes_from_call, event_test
+from .util import XML, EventHandlerMock, nodes_from_call, event_test
 
 
 @event_test
