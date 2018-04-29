@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from __future__ import unicode_literals
 import os
 import boto
 from boto.exception import S3ResponseError
