@@ -19,7 +19,7 @@
 
 import hashlib
 from speakers import Speaker as Events
-from xmpp.core import cast_bytes
+from xmpp.compat import cast_bytes
 from xmpp.models import Node, StartTLS, Stream
 from xmpp.extensions import Extension
 

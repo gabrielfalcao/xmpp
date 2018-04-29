@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import codecs
-from xmpp.core import cast_bytes
+from xmpp.compat import cast_bytes
 from xmpp.models import SASLAuth
 from xmpp.models import SASLChallenge
 from xmpp.models import SASLResponse

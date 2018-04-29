@@ -28,8 +28,8 @@ import dns.resolver
 
 from speakers import Speaker as Events
 # from xmpp import security
-from xmpp.core import cast_bytes
-from xmpp.core import cast_string
+from xmpp.compat import cast_bytes
+from xmpp.compat import cast_string
 from xmpp.networking.util import create_tcp_socket
 from xmpp.networking.util import address_is_ip
 from xmpp.networking.util import socket_ready

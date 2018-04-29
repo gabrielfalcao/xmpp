@@ -22,8 +22,8 @@ from xmpp.core import ET
 from xmpp.core import cast_string
 from xmpp.compat import string_types
 
-# from xmpp.core import encode_b64
-from xmpp.core import decode_b64
+# from xmpp.compat import encode_b64
+from xmpp.compat import decode_b64
 from xmpp.models.node import Node
 
 

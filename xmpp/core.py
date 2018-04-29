@@ -22,40 +22,14 @@ from __future__ import unicode_literals
 
 import re
 import uuid
-import codecs
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 
 from xmpp.compat import text_type
-from xmpp.compat import binary_type
+from xmpp.compat import cast_string
+from xmpp.compat import cast_bytes
 
 from xmpp._registry import _NODE_MAPPING
-
-
-def encode_b64(s):
-    return cast_string(codecs.encode(cast_bytes(s), 'base64'))
-
-
-def decode_b64(s):
-    return cast_string(codecs.decode(cast_bytes(s), 'base64'))
-
-
-def cast_bytes(s, encoding='utf-8'):
-    if isinstance(s, binary_type):
-        return s
-    elif isinstance(s, text_type):
-        return s.encode(encoding)
-
-    return cast_bytes(text_type(s))
-
-
-def cast_string(s, encoding='utf-8'):
-    if isinstance(s, text_type):
-        return s
-    elif isinstance(s, binary_type):
-        return s.decode(encoding)
-
-    return text_type(s)
 
 
 def split_tag_and_namespace(attribute):
